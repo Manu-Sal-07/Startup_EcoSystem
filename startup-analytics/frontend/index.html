@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Startup Ecosystem Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root{--bg:#f5efe5;--panel:rgba(255,251,245,.88);--text:#1f2a2d;--muted:#66757a;--line:rgba(31,42,45,.12);--accent:#0f766e;--accent2:#d97706;--accent3:#0f4c81;--good:#15803d;--warn:#b45309;--shadow:0 18px 48px rgba(31,42,45,.12);--radius:22px}
+    *{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(15,118,110,.12),transparent 35%),radial-gradient(circle at top right,rgba(217,119,6,.12),transparent 30%),linear-gradient(180deg,#fcfaf5 0%,var(--bg) 100%);min-height:100vh}
+    h1,h2,h3{margin:0;font-family:Georgia,"Times New Roman",serif;letter-spacing:-.02em}.page{width:min(1380px,calc(100vw - 28px));margin:18px auto 32px}
+    .hero,.card{background:var(--panel);border-radius:28px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.7)}.hero{padding:28px;background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,248,236,.85))}
+    .hero-top,.card-head,.inline,.stat-grid,.grid2{display:grid;gap:18px}.hero-top{grid-template-columns:minmax(0,1.6fr) minmax(220px,.7fr)}.grid2{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:18px}.stat-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:18px}
+    .card{padding:20px}.card-head{grid-template-columns:minmax(0,1fr) auto;align-items:center;margin-bottom:14px}.tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+    .tab-btn,button{border:0;border-radius:999px;padding:12px 18px;cursor:pointer;font:inherit;transition:.16s;background:#e8ddd0;color:var(--text)}.tab-btn.active,button.primary{background:linear-gradient(135deg,var(--accent),#14b8a6);color:#fff;box-shadow:0 10px 20px rgba(15,118,110,.22)}button.secondary{background:linear-gradient(135deg,var(--accent2),#f59e0b);color:#fff}button:hover,.tab-btn:hover{transform:translateY(-1px)}
+    .tab{display:none;animation:fade .28s ease}.tab.active{display:block}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .badge{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:rgba(15,76,129,.09);color:var(--accent3);font-size:.84rem;font-weight:700}.badge.good{background:rgba(21,128,61,.12);color:var(--good)}.badge.warn{background:rgba(180,83,9,.12);color:var(--warn)}
+    .sub,.meta,.empty{color:var(--muted)}form,.stack,.list{display:grid;gap:12px}.form-grid,.profile{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+    label{display:grid;gap:6px;font-size:.95rem;font-weight:600}input,select,textarea{width:100%;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.9);font:inherit;color:var(--text)}textarea{min-height:92px;resize:vertical}
+    .checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;border-radius:16px;background:rgba(255,255,255,.6);border:1px solid var(--line)}.checks label{display:flex;gap:8px;align-items:center;font-weight:500}.checks input{width:auto;margin:0}
+    .cell,.item,.match,.feed,.conn,.viewer,.stat{padding:14px;border-radius:18px;background:rgba(255,255,255,.75);border:1px solid rgba(15,76,129,.08)}.cell strong{display:block;margin-bottom:4px;font-size:.8rem;text-transform:uppercase;color:var(--muted);letter-spacing:.06em}
+    .bar{height:10px;border-radius:999px;background:rgba(15,76,129,.1);overflow:hidden;margin-top:10px}.fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}.break{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;color:var(--muted);font-size:.88rem}
+    .graph-shell{position:relative;min-height:470px;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 20% 20%,rgba(15,118,110,.12),transparent 30%),radial-gradient(circle at 80% 10%,rgba(217,119,6,.12),transparent 24%),rgba(255,255,255,.78);border:1px solid rgba(15,76,129,.08)}#networkGraph{width:100%;height:470px;display:block}
+    .tip{position:absolute;pointer-events:none;transform:translate(-50%,calc(-100% - 14px));background:rgba(31,42,45,.96);color:#fff;border-radius:14px;padding:10px 12px;font-size:.84rem;opacity:0;transition:opacity .16s ease}
+    table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(15,76,129,.08)}
+    .toast{position:fixed;right:20px;bottom:20px;padding:14px 16px;border-radius:16px;background:rgba(31,42,45,.95);color:#fff;box-shadow:var(--shadow);opacity:0;pointer-events:none;transform:translateY(8px);transition:.18s;z-index:20;max-width:320px}.toast.show{opacity:1;transform:none}
+    @media (max-width:1100px){.hero-top,.grid2,.stat-grid,.form-grid,.profile{grid-template-columns:1fr}}@media (max-width:720px){.page{width:min(100vw - 18px,100%)}.hero{padding:20px}.checks{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="badge">Startup Ecosystem Analytics</div>
+          <h1 style="margin-top:10px">One dashboard for founders, investors, and graph intelligence.</h1>
+          <p class="sub" style="margin:10px 0 0;line-height:1.6;max-width:64ch">Register profiles, browse startups, track viewers and connection signals, and inspect live sector and network analytics from the FastAPI backend.</p>
+        </div>
+        <div class="item">
+          <div class="meta">API Base</div>
+          <strong id="apiBaseLabel">http://localhost:8000</strong>
+          <div id="apiHealthLine" class="meta" style="margin-top:8px">Checking backend health...</div>
+          <button id="refreshHealth" class="secondary" type="button" style="margin-top:12px">Refresh Health</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="startup">Startup</button>
+        <button class="tab-btn" data-tab="investor">Investor</button>
+        <button class="tab-btn" data-tab="analyst">Analyst</button>
+      </div>
+    </section>
+
+    <main>
+      <section id="tab-startup" class="tab active">
+        <div class="grid2">
+          <article class="card">
+            <div class="card-head"><div><h2>Register Startup</h2><div class="sub">Create a profile and trigger matching.</div></div><span id="startupRegisterBadge" class="badge">Ready</span></div>
+            <form id="startupForm">
+              <div class="form-grid">
+                <label>Name<input name="name" required placeholder="Nova Forge"></label>
+                <label>Sector<select name="sector" required></select></label>
+                <label>Stage<select name="stage" required></select></label>
+                <label>Funding Ask<input name="funding_ask" type="number" min="0" step="1000" required></label>
+                <label>Equity Offered<input name="equity_offered" type="number" min="0" max="100" step="0.1" required></label>
+                <label>Team Size<input name="team_size" type="number" min="1" step="1"></label>
+                <label>Revenue<input name="revenue" type="number" min="0" step="1000"></label>
+                <label>Founded<input name="founded" type="number" min="1900" max="2100" step="1"></label>
+              </div>
+              <label>Pitch<textarea name="pitch" placeholder="A crisp company summary."></textarea></label>
+              <button class="primary" type="submit">Register Startup</button>
+            </form>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h2>My Profile</h2><div class="sub">Loads after registration or investor view.</div></div><span id="startupProfileBadge" class="badge">Awaiting profile</span></div>
+            <div id="startupProfile" class="empty">Register a startup to populate this card.</div>
+          </article>
+        </div>
+        <div class="grid2">
+          <article class="card">
+            <div class="card-head"><div><h2>Who Viewed Me</h2><div class="sub">Polling every 10 seconds for the active startup.</div></div><span id="startupViewersBadge" class="badge">Idle</span></div>
+            <div id="startupViewers" class="list empty">No views yet.</div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h2>My Connections</h2><div class="sub">Pending, accepted, and rejected investor activity.</div></div><span id="startupConnectionsBadge" class="badge">Waiting</span></div>
+            <div id="startupConnections" class="list empty">No connection activity yet.</div>
+          </article>
+        </div>
+        <article class="card" style="margin-top:18px">
+          <div class="card-head"><div><h2>My Best Matches</h2><div class="sub">Investors ranked by sector, ticket, stage, and network fit.</div></div><span id="startupMatchesBadge" class="badge">Waiting</span></div>
+          <div id="startupMatches" class="list empty">Register or select a startup to view matches.</div>
+        </article>
+      </section>
+
+      <section id="tab-investor" class="tab">
+        <div class="grid2">
+          <article class="card">
+            <div class="card-head"><div><h2>Register Investor</h2><div class="sub">Create an investor profile and compute matches.</div></div><span id="investorRegisterBadge" class="badge">Ready</span></div>
+            <form id="investorForm">
+              <div class="form-grid">
+                <label>Name<input name="name" required placeholder="Emma Chen"></label>
+                <label>Firm<input name="firm" placeholder="Northstar Ventures"></label>
+                <label>Type<select name="type" required></select></label>
+                <label>Ticket Min<input name="ticket_min" type="number" min="0" step="1000" required></label>
+                <label>Ticket Max<input name="ticket_max" type="number" min="0" step="1000" required></label>
+              </div>
+              <label>Preferred Sectors</label>
+              <div id="investorSectorOptions" class="checks"></div>
+              <label>Stage Focus</label>
+              <div id="investorStageOptions" class="checks"></div>
+              <label>Bio<textarea name="bio" placeholder="Early-stage operator turned investor."></textarea></label>
+              <button class="primary" type="submit">Register Investor</button>
+            </form>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h2>Feed Filters</h2><div class="sub">Filter the startup feed and engage from here.</div></div><span id="investorFeedBadge" class="badge">Ready</span></div>
+            <form id="feedFilterForm">
+              <div class="form-grid">
+                <label>Sector<select name="sector"><option value="">All sectors</option></select></label>
+                <label>Stage<select name="stage"><option value="">All stages</option></select></label>
+                <label>Min Ask<input name="min_ask" type="number" min="0" step="1000"></label>
+                <label>Max Ask<input name="max_ask" type="number" min="0" step="1000"></label>
+              </div>
+              <div class="inline"><button class="primary" type="submit">Load Feed</button><button id="feedReset" type="button">Reset</button></div>
+            </form>
+          </article>
+        </div>
+        <div class="grid2">
+          <article class="card">
+            <div class="card-head"><div><h2>Startup Feed</h2><div class="sub">View profiles and send interest directly.</div></div><span id="feedListBadge" class="badge">Waiting</span></div>
+            <div id="startupFeed" class="list empty">Load the feed to see startup cards.</div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h2>My Matches</h2><div class="sub">Top startup opportunities for the active investor.</div></div><span id="investorMatchesBadge" class="badge">Waiting</span></div>
+            <div id="investorMatches" class="list empty">Register an investor to load personalized matches.</div>
+          </article>
+        </div>
+      </section>
+
+      <section id="tab-analyst" class="tab">
+        <div class="stat-grid">
+          <div class="stat"><div class="meta">Total Startups</div><div id="statStartups" style="font-family:Georgia,serif;font-size:2rem;margin-top:6px">-</div></div>
+          <div class="stat"><div class="meta">Total Investors</div><div id="statInvestors" style="font-family:Georgia,serif;font-size:2rem;margin-top:6px">-</div></div>
+          <div class="stat"><div class="meta">Total Connections</div><div id="statConnections" style="font-family:Georgia,serif;font-size:2rem;margin-top:6px">-</div></div>
+          <div class="stat"><div class="meta">Hot Sector</div><div id="statHotSector" style="font-family:Georgia,serif;font-size:1.4rem;margin-top:10px">-</div></div>
+        </div>
+        <article class="card" style="margin-top:18px">
+          <div class="card-head"><div><h2>Network Graph</h2><div class="sub">D3 force graph of startups, investors, founders, and relationships.</div></div><span id="networkBadge" class="badge">Waiting</span></div>
+          <div class="graph-shell"><svg id="networkGraph" viewBox="0 0 960 470" preserveAspectRatio="xMidYMid meet"></svg><div id="graphTooltip" class="tip"></div></div>
+        </article>
+        <div class="grid2">
+          <article class="card">
+            <div class="card-head"><div><h2>Sector Funding</h2><div class="sub">Funding ask by sector.</div></div><span id="sectorChartBadge" class="badge">Waiting</span></div>
+            <canvas id="sectorChart" height="240"></canvas>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h2>Hot Sectors</h2><div class="sub">Last 30 days of interest activity.</div></div><span id="hotSectorsBadge" class="badge">Waiting</span></div>
+            <div id="hotSectorsList" class="list empty">No hot sector data loaded yet.</div>
+          </article>
+        </div>
+        <article class="card" style="margin-top:18px">
+          <div class="card-head"><div><h2>Investor Leaderboard</h2><div class="sub">Top 20 investors by engagement score.</div></div><span id="leaderboardBadge" class="badge">Waiting</span></div>
+          <table><thead><tr><th>Rank</th><th>Investor ID</th><th>Score</th></tr></thead><tbody id="leaderboardBody"><tr><td colspan="3" class="empty">Load analytics to populate the leaderboard.</td></tr></tbody></table>
+        </article>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script>
+    const API_BASE="http://localhost:8000",SECTORS=["FinTech","HealthTech","EdTech","CleanTech","SaaS","AI/ML","E-commerce","BioTech"],STAGES=["Pre-Seed","Seed","Series A","Series B"],INVESTOR_TYPES=["Angel","VC","Corporate VC","Family Office"];
+    const state={activeTab:"startup",startupId:null,investorId:null,viewersTimer:null,sectorChart:null};
+    const $=s=>document.querySelector(s);
+    const money=v=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(v||0));
+    const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+    function fmtDate(v){if(!v)return"Unknown";const n=Number(v);if(!Number.isNaN(n)&&String(v).length>=10)return new Date(n*1000).toLocaleString();const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString()}
+    function toast(msg,err=false){const t=$("#toast");t.textContent=msg;t.style.background=err?"rgba(127,29,29,.96)":"rgba(31,42,45,.95)";t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+    function badge(id,body,fallback="Live"){const el=document.getElementById(id);if(!el)return;const src=body&&body.source?String(body.source).toLowerCase():"live";if(src.includes("cache")||src.includes("redis")){el.className="badge good";el.textContent="Redis cache"}else if(src.includes("db")||src.includes("neo4j")){el.className="badge";el.textContent="Neo4j live"}else{el.className="badge";el.textContent=fallback}}
+    async function api(path,options={}){const start=performance.now();const res=await fetch(`${API_BASE}${path}`,{headers:{"Content-Type":"application/json",...(options.headers||{})},...options});const duration=Math.round(performance.now()-start);const text=await res.text();let body=null;try{body=text?JSON.parse(text):null}catch{body={raw:text}}if(!res.ok)throw new Error(body?.detail||body?.raw||`Request failed (${res.status})`);return{body,duration,response:res}}
+    function fillStatic(){const ss=$('#startupForm select[name="sector"]'),st=$('#startupForm select[name="stage"]'),it=$('#investorForm select[name="type"]'),fs=$('#feedFilterForm select[name="sector"]'),ft=$('#feedFilterForm select[name="stage"]');SECTORS.forEach(v=>{ss.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`);fs.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`)});STAGES.forEach(v=>{st.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`);ft.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`)});INVESTOR_TYPES.forEach(v=>it.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`));$("#investorSectorOptions").innerHTML=SECTORS.map(v=>`<label><input type="checkbox" value="${v}" name="preferred_sectors"> ${v}</label>`).join("");$("#investorStageOptions").innerHTML=STAGES.map(v=>`<label><input type="checkbox" value="${v}" name="stage_focus"> ${v}</label>`).join("")}
+    function switchTab(name){state.activeTab=name;document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));document.querySelectorAll(".tab").forEach(p=>p.classList.toggle("active",p.id===`tab-${name}`));if(name==="analyst")loadAnalyst()}
+    function renderStartupProfile(p){$("#startupProfile").innerHTML=!p?'<div class="empty">Register a startup to populate this card.</div>':`<div class="stack"><h3>${esc(p.name)}</h3><div class="profile"><div class="cell"><strong>Sector</strong>${esc(p.sector)}</div><div class="cell"><strong>Stage</strong>${esc(p.stage)}</div><div class="cell"><strong>Funding Ask</strong>${money(p.funding_ask)}</div><div class="cell"><strong>Equity</strong>${Number(p.equity_offered||0)}%</div><div class="cell"><strong>Team Size</strong>${esc(p.team_size??"-")}</div><div class="cell"><strong>Revenue</strong>${money(p.revenue)}</div><div class="cell"><strong>Founded</strong>${esc(p.founded??"-")}</div><div class="cell"><strong>ID</strong>${esc(p.id)}</div></div><div class="cell"><strong>Pitch</strong>${esc(p.pitch||"No pitch provided.")}</div></div>`}
+    function renderMatches(target,matches,investorView=false){const el=$(target);if(!matches||!matches.length){el.innerHTML='<div class="empty">No matches yet.</div>';return}el.innerHTML=matches.map(m=>`<div class="match"><div class="card-head"><div><strong>${esc(m.name)}</strong><div class="meta">${investorView?`${esc(m.sector)} / ${esc(m.stage)}`:`${esc(m.firm||"Independent")} / ${esc(m.type||"Investor")}`}</div></div><span class="badge good">${m.total_score}/100</span></div>${investorView?`<div class="meta">Funding ask ${money(m.funding_ask)}</div>`:""}<div class="bar"><div class="fill" style="width:${Math.min(100,Number(m.total_score||0))}%"></div></div><div class="break"><span>Sector ${m.sector_score}</span><span>Ticket ${m.ticket_score}</span><span>Stage ${m.stage_score}</span><span>Network ${m.network_score}</span></div></div>`).join("")}
+    function renderViewers(viewers){const entries=Object.entries(viewers||{});$("#startupViewers").innerHTML=!entries.length?'<div class="empty">No views recorded yet.</div>':entries.map(([id,ts])=>`<div class="viewer"><strong>${esc(id)}</strong><div class="meta">Viewed at ${fmtDate(ts)}</div></div>`).join("")}
+    function renderConnections(items){$("#startupConnections").innerHTML=!items||!items.length?'<div class="empty">No connection activity yet.</div>':items.map(i=>`<div class="conn"><div class="card-head"><strong>${esc(i.investor_name||i.investor_id)}</strong><span class="badge ${i.status==="accepted"?"good":i.status==="rejected"?"warn":""}">${esc(i.status)}</span></div><div class="meta">Investor ID: ${esc(i.investor_id)}</div><div class="meta">Proposed amount: ${money(i.proposed_amount)}</div><div style="margin-top:8px">${esc(i.message||"No message provided.")}</div></div>`).join("")}
+    function renderFeed(items){$("#startupFeed").innerHTML=!items||!items.length?'<div class="empty">No startups matched the current filters.</div>':items.map(s=>`<div class="feed"><div class="card-head"><div><strong>${esc(s.name)}</strong><div class="meta">${esc(s.sector)} / ${esc(s.stage)}</div></div><span class="badge">${money(s.funding_ask)}</span></div><div class="meta">${esc(s.pitch||"No pitch provided.")}</div><div class="inline" style="margin-top:12px"><button type="button" data-action="view-profile" data-startup-id="${s.id}" class="secondary">View Profile</button><button type="button" data-action="express-interest" data-startup-id="${s.id}" class="primary">Express Interest</button></div></div>`).join("")}
+    function renderHot(items){$("#hotSectorsList").innerHTML=!items||!items.length?'<div class="empty">No hot sector activity found.</div>':items.map(i=>`<div class="item"><strong>${esc(i.sector)}</strong><div class="meta">${esc(i.interest_count)} recent interest events</div></div>`).join("")}
+    function renderLeaderboard(items){$("#leaderboardBody").innerHTML=!items||!items.length?'<tr><td colspan="3" class="empty">No leaderboard data available.</td></tr>':items.map((i,n)=>`<tr><td>${n+1}</td><td>${esc(i.investor_id)}</td><td>${esc(i.score)}</td></tr>`).join("")}
+    function chart(items){const ctx=document.getElementById("sectorChart");if(state.sectorChart)state.sectorChart.destroy();state.sectorChart=new Chart(ctx,{type:"bar",data:{labels:items.map(i=>i.sector),datasets:[{label:"Funding Ask",data:items.map(i=>Number(i.total_funding_ask||0)),borderRadius:12,backgroundColor:["#0f766e","#14867d","#1a8f7b","#d97706","#c76a0b","#0f4c81","#2b6cb0","#5f8f3b"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>`$${Number(v/1000000).toFixed(1)}M`}}}}})}
+    function graph(payload){const svg=d3.select("#networkGraph"),tip=$("#graphTooltip");svg.selectAll("*").remove();const width=960,height=470,nodes=(payload.nodes||[]).map(n=>({...n})),links=(payload.edges||[]).map(e=>({...e})),nc={Startup:"#0f4c81",Investor:"#d14343",Founder:"#15803d"},ec={INTERESTED_IN:"#f59e0b",CONNECTED_TO:"#16a34a",INVESTED_IN:"#2563eb",FOUNDED:"#64748b",COMPETES_WITH:"#c084fc"};const sim=d3.forceSimulation(nodes).force("link",d3.forceLink(links).id(d=>d.id).distance(100)).force("charge",d3.forceManyBody().strength(-280)).force("center",d3.forceCenter(width/2,height/2)).force("collision",d3.forceCollide().radius(22));const link=svg.append("g").selectAll("line").data(links).join("line").attr("stroke",d=>ec[d.type]||"#94a3b8").attr("stroke-opacity",.72).attr("stroke-width",d=>d.type==="INVESTED_IN"?2.8:1.8);const node=svg.append("g").selectAll("circle").data(nodes).join("circle").attr("r",d=>d.label==="Investor"?10:8).attr("fill",d=>nc[d.label]||"#334155").attr("stroke","#fff").attr("stroke-width",1.8).call(d3.drag().on("start",started).on("drag",dragged).on("end",ended)).on("mousemove",(event,d)=>{tip.style.opacity="1";tip.style.left=`${event.offsetX}px`;tip.style.top=`${event.offsetY}px`;tip.innerHTML=`<strong>${esc(d.name)}</strong><div>${esc(d.label)}</div><div>${esc(d.sector||"")}</div>`}).on("mouseleave",()=>tip.style.opacity="0");const labels=svg.append("g").selectAll("text").data(nodes.slice(0,40)).join("text").text(d=>d.name).attr("font-size",11).attr("fill","#36454f").attr("dx",12).attr("dy",4);sim.on("tick",()=>{link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);node.attr("cx",d=>d.x).attr("cy",d=>d.y);labels.attr("x",d=>d.x).attr("y",d=>d.y)});function started(event){if(!event.active)sim.alphaTarget(.3).restart();event.subject.fx=event.subject.x;event.subject.fy=event.subject.y}function dragged(event){event.subject.fx=event.x;event.subject.fy=event.y}function ended(event){if(!event.active)sim.alphaTarget(0);event.subject.fx=null;event.subject.fy=null}}
+    async function checkHealth(){try{const {body}=await api("/health");$("#apiHealthLine").textContent=`Neo4j: ${body.neo4j} | Redis: ${body.redis}`}catch(error){$("#apiHealthLine").textContent=`Backend unreachable: ${error.message}`}}
+    async function loadStartupMatches(){if(!state.startupId)return;try{const {body}=await api(`/startups/${state.startupId}/matches`);badge("startupMatchesBadge",body);renderMatches("#startupMatches",body.matches||[])}catch(error){$("#startupMatches").innerHTML=`<div class="empty">${esc(error.message)}</div>`}}
+    async function loadStartupConnections(){if(!state.startupId)return;try{const {body}=await api(`/connections/${state.startupId}`);badge("startupConnectionsBadge",body);renderConnections(body.items||[])}catch(error){$("#startupConnections").innerHTML=`<div class="empty">${esc(error.message)}</div>`}}
+    async function loadStartupViewers(){if(!state.startupId)return;try{const {body}=await api(`/startups/${state.startupId}/viewers`);badge("startupViewersBadge",body,"Polling");renderViewers(body.viewers||{})}catch(error){$("#startupViewers").innerHTML=`<div class="empty">${esc(error.message)}</div>`}}
+    async function loadInvestorMatches(){if(!state.investorId)return;try{const {body}=await api(`/investors/${state.investorId}/matches`);badge("investorMatchesBadge",body);renderMatches("#investorMatches",body.matches||[],true)}catch(error){$("#investorMatches").innerHTML=`<div class="empty">${esc(error.message)}</div>`}}
+    async function loadFeed(){const f=$("#feedFilterForm"),params=new URLSearchParams();["sector","stage","min_ask","max_ask"].forEach(n=>{const v=f.elements[n].value;if(v!=="")params.append(n,v)});try{const {body,duration}=await api(`/startups/feed${params.toString()?`?${params}`:""}`);badge("feedListBadge",body);$("#investorFeedBadge").textContent=`${duration} ms`;renderFeed(body.items||[])}catch(error){$("#startupFeed").innerHTML=`<div class="empty">${esc(error.message)}</div>`}}
+    async function loadAnalyst(){try{const [n,t,l,h]=await Promise.all([api("/analytics/network"),api("/analytics/sector-trends"),api("/analytics/leaderboard"),api("/analytics/hot-sectors")]);const network=n.body.items||{nodes:[],edges:[]},trends=t.body.items||[],leader=l.body.items||[],hot=h.body.items||[];badge("networkBadge",n.body);badge("sectorChartBadge",t.body);badge("leaderboardBadge",l.body,"Leaderboard");badge("hotSectorsBadge",h.body);$("#statStartups").textContent=network.nodes.filter(x=>x.label==="Startup").length;$("#statInvestors").textContent=network.nodes.filter(x=>x.label==="Investor").length;$("#statConnections").textContent=network.edges.filter(x=>x.type==="CONNECTED_TO"||x.type==="INTERESTED_IN").length;$("#statHotSector").textContent=hot[0]?.sector||"No recent signal";graph(network);chart(trends);renderLeaderboard(leader);renderHot(hot)}catch(error){toast(`Analytics load failed: ${error.message}`,true)}}
+    function checked(sel){return [...document.querySelectorAll(`${sel} input:checked`)].map(i=>i.value)}
+    async function registerStartup(e){e.preventDefault();const f=e.currentTarget,p={name:f.name.value,sector:f.sector.value,stage:f.stage.value,funding_ask:Number(f.funding_ask.value),equity_offered:Number(f.equity_offered.value),pitch:f.pitch.value,team_size:f.team_size.value?Number(f.team_size.value):null,revenue:f.revenue.value?Number(f.revenue.value):null,founded:f.founded.value?Number(f.founded.value):null};try{const {body}=await api("/startups/register",{method:"POST",body:JSON.stringify(p)});state.startupId=body.id;badge("startupRegisterBadge",{source:"db"});badge("startupProfileBadge",{source:"db"});renderStartupProfile(body);await Promise.all([loadStartupMatches(),loadStartupConnections(),loadStartupViewers()]);clearInterval(state.viewersTimer);state.viewersTimer=setInterval(loadStartupViewers,10000);toast(`Startup registered: ${body.name}`)}catch(error){toast(error.message,true)}}
+    async function registerInvestor(e){e.preventDefault();const f=e.currentTarget,pref=checked("#investorSectorOptions"),stage=checked("#investorStageOptions");if(!pref.length||!stage.length){toast("Select at least one preferred sector and one stage focus.",true);return}const p={name:f.name.value,firm:f.firm.value||null,type:f.type.value,ticket_min:Number(f.ticket_min.value),ticket_max:Number(f.ticket_max.value),preferred_sectors:pref,stage_focus:stage,bio:f.bio.value||null};try{const {body}=await api("/investors/register",{method:"POST",body:JSON.stringify(p)});state.investorId=body.id;badge("investorRegisterBadge",{source:"db"});await loadInvestorMatches();toast(`Investor registered: ${body.name}`)}catch(error){toast(error.message,true)}}
+    async function postView(startupId){if(!state.investorId){toast("Register an investor first to log views.",true);return}try{await api(`/investors/${state.investorId}/view/${startupId}`,{method:"POST"});const {body}=await api(`/startups/${startupId}`);state.startupId=startupId;renderStartupProfile(body.item);switchTab("startup");await Promise.all([loadStartupViewers(),loadStartupConnections(),loadStartupMatches()]);toast("Startup view logged.")}catch(error){toast(error.message,true)}}
+    async function interest(startupId){if(!state.investorId){toast("Register an investor first to express interest.",true);return}const message=window.prompt("Message to the startup:","Interested in learning more.");if(message===null)return;const proposed=window.prompt("Proposed amount (USD):","250000");if(proposed===null)return;try{await api("/connect/interest",{method:"POST",body:JSON.stringify({investor_id:state.investorId,startup_id:startupId,message,proposed_amount:Number(proposed)})});if(state.startupId===startupId)await loadStartupConnections();await loadInvestorMatches();toast("Interest sent.")}catch(error){toast(error.message,true)}}
+    function wire(){document.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));$("#startupForm").addEventListener("submit",registerStartup);$("#investorForm").addEventListener("submit",registerInvestor);$("#feedFilterForm").addEventListener("submit",e=>{e.preventDefault();loadFeed()});$("#feedReset").addEventListener("click",()=>{$("#feedFilterForm").reset();loadFeed()});$("#refreshHealth").addEventListener("click",checkHealth);$("#startupFeed").addEventListener("click",async e=>{const btn=e.target.closest("button[data-action]");if(!btn)return;const id=btn.dataset.startupId;if(btn.dataset.action==="view-profile")await postView(id);if(btn.dataset.action==="express-interest")await interest(id)})}
+    function init(){document.getElementById("apiBaseLabel").textContent=API_BASE;fillStatic();wire();checkHealth();loadFeed()}
+    init();
+  </script>
+</body>
+</html>
