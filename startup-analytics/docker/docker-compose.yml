@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api:
     build:
@@ -6,24 +5,29 @@ services:
       dockerfile: Dockerfile
     container_name: startup-analytics-api
     environment:
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=password123
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      NEO4J_URI: ${NEO4J_URI_DOCKER:-bolt://neo4j:7687}
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-password123}
+      REDIS_HOST: ${REDIS_HOST_DOCKER:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     ports:
       - "8000:8000"
     depends_on:
-      - neo4j
-      - redis
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - app-network
+    restart: unless-stopped
 
   neo4j:
     image: neo4j:5.13
     container_name: neo4j
     environment:
-      - NEO4J_AUTH=neo4j/password123
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/password123}
+      NEO4J_dbms_memory_heap_initial__size: ${NEO4J_dbms_memory_heap_initial__size:-512m}
+      NEO4J_dbms_memory_heap_max__size: ${NEO4J_dbms_memory_heap_max__size:-1G}
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -32,6 +36,13 @@ services:
       - neo4j_logs:/logs
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER:-neo4j} -p ${NEO4J_PASSWORD:-password123} 'RETURN 1;' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 60s
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -42,6 +53,12 @@ services:
       - redis_data:/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
 networks:
   app-network:

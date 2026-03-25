@@ -1,5 +1,6 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 
+from backend.auth import require_role
 from backend.db import cache_delete, cache_get, cache_set, get_session, r
 from backend.matching import invalidate_match_caches, refresh_related_matches
 from backend.models import ConnectionDecision, InterestRequest
@@ -8,7 +9,11 @@ router = APIRouter(tags=["connections"])
 
 
 @router.post("/connect/interest")
-async def express_interest(payload: InterestRequest, background_tasks: BackgroundTasks):
+async def express_interest(
+    payload: InterestRequest,
+    background_tasks: BackgroundTasks,
+    _: dict = Depends(require_role("INVESTOR")),
+):
     query = """
     MATCH (i:Investor {id: $investor_id})
     MATCH (s:Startup {id: $startup_id})
@@ -30,7 +35,10 @@ async def express_interest(payload: InterestRequest, background_tasks: Backgroun
 
 
 @router.post("/connect/accept")
-async def accept_interest(payload: ConnectionDecision):
+async def accept_interest(
+    payload: ConnectionDecision,
+    _: dict = Depends(require_role("STARTUP")),
+):
     update_query = """
     MATCH (i:Investor {id: $investor_id})-[r:INTERESTED_IN]->(s:Startup {id: $startup_id})
     SET r.status = 'accepted', r.accepted_at = datetime()
@@ -45,7 +53,10 @@ async def accept_interest(payload: ConnectionDecision):
 
 
 @router.post("/connect/reject")
-async def reject_interest(payload: ConnectionDecision):
+async def reject_interest(
+    payload: ConnectionDecision,
+    _: dict = Depends(require_role("STARTUP")),
+):
     query = """
     MATCH (:Investor {id: $investor_id})-[r:INTERESTED_IN]->(:Startup {id: $startup_id})
     SET r.status = 'rejected', r.rejected_at = datetime()
@@ -59,7 +70,10 @@ async def reject_interest(payload: ConnectionDecision):
 
 
 @router.get("/connections/{startup_id}")
-async def get_connections(startup_id: str):
+async def get_connections(
+    startup_id: str,
+    _: dict = Depends(require_role("STARTUP", "ANALYST")),
+):
     cache_key = f"connections:{startup_id}"
     cached = cache_get(cache_key)
     if cached is not None:

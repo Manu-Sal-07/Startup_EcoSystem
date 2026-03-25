@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register | Startup Ecosystem Platform</title>
+  <link rel="stylesheet" href="/frontend/common.css">
+</head>
+<body>
+  <section class="auth-shell">
+    <div class="auth-panel">
+      <aside class="auth-aside">
+        <div class="badge" style="background:rgba(255,255,255,.18);color:white;width:max-content">Create An Account</div>
+        <h1>Register once, then jump straight into your own dashboard.</h1>
+        <p style="margin:0;line-height:1.7;color:rgba(255,255,255,.82)">Startup signup creates a graph-backed profile ready for milestone posting. Investor signup creates a wallet-enabled deal discovery workspace with live transfer controls.</p>
+        <div class="hero-metrics" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+          <div class="metric-card" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);">
+            <div class="metric-label" style="color:rgba(255,255,255,.72)">Startup path</div>
+            <div class="metric-value" style="font-size:1.3rem;color:white">Achievements</div>
+            <div class="metric-sub" style="color:rgba(255,255,255,.72)">Profile, traction, matches</div>
+          </div>
+          <div class="metric-card" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);">
+            <div class="metric-label" style="color:rgba(255,255,255,.72)">Investor path</div>
+            <div class="metric-value" style="font-size:1.3rem;color:white">Funding</div>
+            <div class="metric-sub" style="color:rgba(255,255,255,.72)">Discovery, transfer, history</div>
+          </div>
+        </div>
+      </aside>
+      <div class="auth-card">
+        <div class="section-header">
+          <div class="stack" style="gap:8px">
+            <h2>Register</h2>
+            <div class="sub">Choose your role, complete the essentials, and we will sign you in immediately after account creation.</div>
+          </div>
+          <button id="themeToggleButton" class="theme-toggle" type="button">Switch to Dark</button>
+        </div>
+        <form id="registerForm" class="stack">
+          <label>Register As
+            <select id="registerRole" name="role">
+              <option value="STARTUP">STARTUP</option>
+              <option value="INVESTOR">INVESTOR</option>
+            </select>
+          </label>
+          <div class="form-grid">
+            <label>Name<input name="name" required placeholder="Your name or startup name"></label>
+            <label>Email<input name="email" type="email" required placeholder="Email address"></label>
+            <label>Password<input name="password" type="password" required placeholder="At least 6 characters"></label>
+          </div>
+          <div class="panel-note">Use a clean email and keep the selected role accurate. The backend will create the correct node type and redirect you to its workspace after signup.</div>
+
+          <div id="startupRegisterFields" class="stack">
+            <div class="form-grid">
+              <label>Sector
+                <select name="startup_sector">
+                  <option value="FinTech">FinTech</option>
+                  <option value="HealthTech">HealthTech</option>
+                  <option value="EdTech">EdTech</option>
+                  <option value="CleanTech">CleanTech</option>
+                  <option value="SaaS">SaaS</option>
+                  <option value="AI/ML">AI/ML</option>
+                  <option value="E-commerce">E-commerce</option>
+                  <option value="BioTech">BioTech</option>
+                </select>
+              </label>
+              <label>Stage
+                <select name="startup_stage">
+                  <option value="Pre-Seed">Pre-Seed</option>
+                  <option value="Seed">Seed</option>
+                  <option value="Series A">Series A</option>
+                  <option value="Series B">Series B</option>
+                </select>
+              </label>
+              <label>Funding Ask<input name="startup_funding_ask" type="number" min="0" step="1000" value="500000"></label>
+              <label>Equity Offered<input name="startup_equity_offered" type="number" min="0" step="0.1" value="10"></label>
+              <label>Team Size<input name="startup_team_size" type="number" min="1" step="1" value="5"></label>
+              <label>Founded<input name="startup_founded" type="number" min="2000" max="2100" value="2025"></label>
+              <label>Revenue<input name="startup_revenue" type="number" min="0" step="1000" value="0"></label>
+            </div>
+            <label>Pitch<textarea name="startup_pitch" placeholder="Describe the startup and what makes it worth backing."></textarea></label>
+          </div>
+
+          <div id="investorRegisterFields" class="stack hidden">
+            <div class="form-grid">
+              <label>Firm<input name="investor_firm" placeholder="Northstar Ventures"></label>
+              <label>Type<input name="investor_type" placeholder="VC"></label>
+              <label>Ticket Min<input name="investor_ticket_min" type="number" min="0" step="1000" value="100000"></label>
+              <label>Ticket Max<input name="investor_ticket_max" type="number" min="0" step="1000" value="500000"></label>
+              <label>Preferred Sectors<input name="investor_sectors" placeholder="AI/ML, SaaS"></label>
+              <label>Stage Focus<input name="investor_stages" placeholder="Seed, Series A"></label>
+            </div>
+            <label>Bio<textarea name="investor_bio" placeholder="What kinds of founders and rounds do you back?"></textarea></label>
+          </div>
+
+          <div class="inline">
+            <button class="primary" type="submit">Create Account</button>
+            <button id="goToLogin" class="ghost" type="button">Back to Login</button>
+          </div>
+          <div id="registerError" class="hidden error-text"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+  <div id="toast" class="toast"></div>
+  <script src="/frontend/core.js"></script>
+  <script src="/frontend/auth-pages.js"></script>
+  <script>initRegisterPage();</script>
+</body>
+</html>

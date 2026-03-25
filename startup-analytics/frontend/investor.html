@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Investor Workspace</title>
+  <link rel="stylesheet" href="/frontend/common.css">
+</head>
+<body>
+  <div class="workspace-shell">
+    <section class="hero workspace-header reveal">
+      <div class="workspace-top">
+        <div class="headline-stack">
+          <div class="badge">Investor Deal Room</div>
+          <h1 id="workspaceTitle">Investor Workspace</h1>
+          <p>Discover promising startups, review your fit scores, track wallet deployment, and move capital into live rounds from a cleaner deal-focused interface.</p>
+        </div>
+        <div class="workspace-actions">
+          <span id="apiHealthBadge" class="badge">Checking backend</span>
+          <button id="themeToggleButton" class="theme-toggle" type="button">Switch to Dark</button>
+          <button id="refreshWorkspaceButton" class="ghost" type="button">Refresh</button>
+          <button id="logoutButton" class="secondary" type="button">Logout</button>
+        </div>
+      </div>
+
+      <div class="workspace-summary">
+        <div class="workspace-hero-panel">
+          <div class="pill-row">
+            <span id="signedInLine" class="badge">Signed in</span>
+            <span id="investorFeedSource" class="badge">Feed loading</span>
+          </div>
+          <div id="workspaceHint" class="workspace-caption">Investor actions live on this page.</div>
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <div class="metric-label">Wallet Balance</div>
+              <div id="investorWalletSummary" class="metric-value">INR 0</div>
+              <div class="metric-sub">Available capital for new transfers.</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Live Matches</div>
+              <div id="investorMatchCount" class="metric-value">0</div>
+              <div class="metric-sub">Startups aligned to your thesis and ticket band.</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Transfers Completed</div>
+              <div id="investorTransferCount" class="metric-value">0</div>
+              <div class="metric-sub">Successful wallet transfers logged in the graph.</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="workspace-health-panel">
+          <div class="metric-label">Deal Operations</div>
+          <div class="metric-value" style="font-size:1.25rem">Funding + Matching</div>
+          <div class="metric-sub">This workspace combines cached feed browsing, graph-based fit scoring, and lock-protected fund transfers.</div>
+          <div id="apiHealthLine" class="panel-note" style="margin-top:14px">Checking backend health...</div>
+        </aside>
+      </div>
+    </section>
+
+    <main class="workspace-grid">
+      <section class="workspace-row reveal">
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Investor Profile</h2>
+              <p>Your firm details, thesis, and wallet position from the live backend profile.</p>
+            </div>
+          </div>
+          <div id="investorProfileView" class="empty-state">Loading investor profile...</div>
+        </article>
+
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Deal Filters</h2>
+              <p>Refine the startup feed by sector, stage, and funding demand before moving capital.</p>
+            </div>
+          </div>
+          <form id="feedFilterForm" class="stack-lg">
+            <div class="form-grid">
+              <label>Sector
+                <select name="sector">
+                  <option value="">All sectors</option>
+                </select>
+              </label>
+              <label>Stage
+                <select name="stage">
+                  <option value="">All stages</option>
+                </select>
+              </label>
+              <label>Minimum Ask<input name="min_ask" type="number" min="0" step="1000"></label>
+              <label>Maximum Ask<input name="max_ask" type="number" min="0" step="1000"></label>
+            </div>
+            <div class="action-row">
+              <button class="primary" type="submit">Load Startup Feed</button>
+              <button id="resetFeedButton" class="ghost" type="button">Reset</button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section class="workspace-row reveal">
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Startup Feed</h2>
+              <p>Each opportunity shows thesis-relevant metadata, round status, and transfer controls.</p>
+            </div>
+          </div>
+          <div id="startupFeedList" class="list-tight"></div>
+        </article>
+
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>My Match Queue</h2>
+              <p>Startups scored against your strategy, backed by graph signals and recent momentum.</p>
+            </div>
+          </div>
+          <div id="investorMatchesList" class="list-tight"></div>
+        </article>
+      </section>
+
+      <section class="reveal">
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Funding History</h2>
+              <p>Completed transfers from your wallet, useful for review during demos and evaluations.</p>
+            </div>
+          </div>
+          <div id="fundHistoryList" class="list-tight"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="/frontend/core.js"></script>
+  <script src="/frontend/investor-page.js"></script>
+  <script>initInvestorPage();</script>
+</body>
+</html>

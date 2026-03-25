@@ -3,6 +3,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 class StartupCreate(BaseModel):
+    email: str | None = None
+    password: str | None = None
     name: str
     sector: str
     stage: str
@@ -14,6 +16,8 @@ class StartupCreate(BaseModel):
     founded: Optional[int]
 
 class InvestorCreate(BaseModel):
+    email: str | None = None
+    password: str | None = None
     name: str
     firm: Optional[str]
     type: Optional[str]

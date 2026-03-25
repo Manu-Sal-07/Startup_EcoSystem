@@ -1,8 +1,9 @@
 from time import time
 from uuid import uuid4
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
+from backend.auth import require_role
 from backend.db import cache_get, cache_set, get_session, r, view_log
 from backend.matching import compute_matches_for_investor, get_cached_or_compute_investor_matches
 from backend.models import InvestorCreate
@@ -19,7 +20,11 @@ def _serialize_record(record):
 
 
 @router.post("/register")
-async def register_investor(payload: InvestorCreate, background_tasks: BackgroundTasks):
+async def register_investor(
+    payload: InvestorCreate,
+    background_tasks: BackgroundTasks,
+    _: dict = Depends(require_role("INVESTOR")),
+):
     investor = payload.model_dump()
     investor["id"] = str(uuid4())
 
@@ -47,7 +52,10 @@ async def register_investor(payload: InvestorCreate, background_tasks: Backgroun
 
 
 @router.get("/{investor_id}")
-async def get_investor(investor_id: str):
+async def get_investor(
+    investor_id: str,
+    _: dict = Depends(require_role("INVESTOR", "ANALYST")),
+):
     cache_key = _investor_cache_key(investor_id)
     cached = cache_get(cache_key)
     if cached is not None:
@@ -57,7 +65,7 @@ async def get_investor(investor_id: str):
     MATCH (i:Investor {id: $investor_id})
     RETURN i {
       .id, .name, .firm, .type, .ticket_min, .ticket_max,
-      .preferred_sectors, .stage_focus, .bio
+      .preferred_sectors, .stage_focus, .bio, .wallet_balance
     } AS investor
     """
     with get_session() as session:
@@ -72,13 +80,20 @@ async def get_investor(investor_id: str):
 
 
 @router.get("/{investor_id}/matches")
-async def get_investor_matches(investor_id: str):
+async def get_investor_matches(
+    investor_id: str,
+    _: dict = Depends(require_role("INVESTOR")),
+):
     matches = get_cached_or_compute_investor_matches(investor_id)
     return {"investor_id": investor_id, "matches": matches}
 
 
 @router.post("/{investor_id}/view/{startup_id}")
-async def log_startup_view(investor_id: str, startup_id: str):
+async def log_startup_view(
+    investor_id: str,
+    startup_id: str,
+    _: dict = Depends(require_role("INVESTOR")),
+):
     timestamp = int(time())
     view_log(startup_id=startup_id, investor_id=investor_id, ts=timestamp)
     return {"investor_id": investor_id, "startup_id": startup_id, "viewed_at": timestamp}

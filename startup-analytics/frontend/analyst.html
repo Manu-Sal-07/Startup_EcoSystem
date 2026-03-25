@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analyst Workspace</title>
+  <link rel="stylesheet" href="/frontend/common.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero analyst-hero">
+      <div class="topbar">
+        <div class="stack" style="gap:8px">
+          <div class="badge">Analyst Control Room</div>
+          <h1 id="workspaceTitle">Ecosystem Intelligence Dashboard</h1>
+          <div class="sub">A cleaner decision dashboard for investors, analysts, and evaluators.</div>
+        </div>
+        <div class="status-strip">
+          <span id="apiHealthBadge" class="badge">Checking backend</span>
+          <button id="exportSummaryButton" class="ghost" type="button">Export Summary</button>
+          <button id="exportTableButton" class="ghost" type="button">Export Table</button>
+          <button id="refreshWorkspaceButton" class="ghost" type="button">Refresh</button>
+          <button id="logoutButton" class="secondary" type="button">Logout</button>
+        </div>
+      </div>
+      <div class="hero-top">
+        <div class="muted-box">
+          <strong id="signedInLine">Signed in</strong>
+          <div id="workspaceHint" class="sub" style="margin-top:8px">Analyst-only ecosystem intelligence with system ops and investor-facing insight.</div>
+        </div>
+        <div class="muted-box">
+          <div class="meta">API Base</div>
+          <strong>http://localhost:8000</strong>
+          <div id="apiHealthLine" class="sub" style="margin-top:8px">Checking backend health...</div>
+          <div id="lastUpdatedLine" class="sub" style="margin-top:8px">Last refreshed: waiting</div>
+        </div>
+      </div>
+    </section>
+
+    <main class="workspace" style="margin-top:18px">
+      <section class="card analyst-controls reveal">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <h2>Dashboard Filters</h2>
+            <div class="sub">Use filters to focus the analytics stack without overloading the page.</div>
+          </div>
+          <span class="badge good" id="filterStatus">All data</span>
+        </div>
+        <div class="form-grid" style="margin-top:14px">
+          <label>Time Window
+            <select id="timeRangeFilter">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+          </label>
+          <label>Sector
+            <select id="sectorFilter">
+              <option value="">All sectors</option>
+            </select>
+          </label>
+          <label>Search
+            <input id="entitySearch" type="search" placeholder="Search startup, investor, or sector">
+          </label>
+          <label>Detail Limit
+            <select id="detailLimitFilter">
+              <option value="5">Top 5</option>
+              <option value="10" selected>Top 10</option>
+              <option value="20">Top 20</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="summary-grid analyst-kpis">
+        <div class="stat-card kpi-card">
+          <div class="meta">Total Startups</div>
+          <div id="statStartups" class="kpi-value">-</div>
+          <div class="sub">Tracked ventures in the ecosystem graph</div>
+        </div>
+        <div class="stat-card kpi-card">
+          <div class="meta">Total Investors</div>
+          <div id="statInvestors" class="kpi-value">-</div>
+          <div class="sub">Active capital participants in the graph</div>
+        </div>
+        <div class="stat-card kpi-card">
+          <div class="meta">Transaction Readiness</div>
+          <div id="statCapital" class="kpi-value">-</div>
+          <div class="sub">Total funding ask across visible startups</div>
+        </div>
+        <div class="stat-card kpi-card">
+          <div class="meta">Hot Sector</div>
+          <div id="statHotSector" class="kpi-value small">-</div>
+          <div class="sub">Most active sector in the filtered window</div>
+        </div>
+        <div class="stat-card kpi-card">
+          <div class="meta">Network Density</div>
+          <div id="statEdges" class="kpi-value">-</div>
+          <div class="sub">Relationships shaping deal flow and visibility</div>
+        </div>
+        <div class="stat-card kpi-card">
+          <div class="meta">Engagement Ratio</div>
+          <div id="statEngagement" class="kpi-value">-</div>
+          <div class="sub">Investor attention relative to startup inventory</div>
+        </div>
+      </section>
+
+      <section class="grid2 analyst-main-grid">
+        <article class="card reveal">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <h2>Overview</h2>
+              <div class="sub">High-impact business and platform indicators.</div>
+            </div>
+            <span class="badge" id="overviewBadge">Refreshing</span>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div class="muted-box">
+              <div class="meta">Growth Signal</div>
+              <strong id="growthSignal">-</strong>
+              <div class="sub" id="growthSignalSub" style="margin-top:8px">Waiting for analytics.</div>
+            </div>
+            <div class="muted-box">
+              <div class="meta">Conversion Signal</div>
+              <strong id="conversionSignal">-</strong>
+              <div class="sub" id="conversionSignalSub" style="margin-top:8px">Waiting for analytics.</div>
+            </div>
+            <div class="muted-box">
+              <div class="meta">System Pulse</div>
+              <strong id="systemPulse">-</strong>
+              <div class="sub" id="systemPulseSub" style="margin-top:8px">Capturing live dashboard metrics.</div>
+            </div>
+            <div class="muted-box">
+              <div class="meta">Risk Watch</div>
+              <strong id="riskWatch">-</strong>
+              <div class="sub" id="riskWatchSub" style="margin-top:8px">Scanning for anomalies.</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <h2>Database & System Operations</h2>
+              <div class="sub">Live request timings, success/failure mix, and dashboard health.</div>
+            </div>
+            <span class="badge" id="opsBadge">Live</span>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div>
+              <div class="meta" style="margin-bottom:10px">Query Volume & Latency Trend</div>
+              <canvas id="opsTrendChart" height="220"></canvas>
+            </div>
+            <div>
+              <div class="meta" style="margin-bottom:10px">Success vs Failure Rate</div>
+              <canvas id="opsStatusChart" height="220"></canvas>
+            </div>
+          </div>
+          <div class="grid3" style="margin-top:14px">
+            <div class="muted-box">
+              <div class="meta">Requests</div>
+              <strong id="opsRequests">-</strong>
+            </div>
+            <div class="muted-box">
+              <div class="meta">Average Latency</div>
+              <strong id="opsLatency">-</strong>
+            </div>
+            <div class="muted-box">
+              <div class="meta">Failure Rate</div>
+              <strong id="opsFailureRate">-</strong>
+            </div>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div class="meta">Error Log Summary</div>
+            <div id="opsErrors" class="list"></div>
+          </div>
+        </article>
+      </section>
+
+      <div class="grid2">
+        <article class="card reveal">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <h2>Business Insights</h2>
+              <div class="sub">Sector momentum, capital allocation, and growth comparison.</div>
+            </div>
+            <span class="badge" id="businessBadge">Updated</span>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div>
+              <div class="meta" style="margin-bottom:10px">Funding Demand By Sector</div>
+              <div class="mini-note">Best for comparing capital demand across sectors.</div>
+              <canvas id="sectorChart" height="230"></canvas>
+            </div>
+            <div>
+              <div class="meta" style="margin-bottom:10px">Attention Distribution</div>
+              <div class="mini-note">Shows where investor attention is concentrated right now.</div>
+              <canvas id="distributionChart" height="230"></canvas>
+            </div>
+          </div>
+        </article>
+        <article class="card reveal">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <h2>Growth & Momentum</h2>
+              <div class="sub">Track the strongest opportunities and ecosystem movement.</div>
+            </div>
+            <span class="badge good">Investor Grade</span>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div>
+              <div class="meta" style="margin-bottom:10px">Hot Sectors</div>
+              <div id="hotSectorsList" class="list"></div>
+            </div>
+            <div>
+              <div class="meta" style="margin-bottom:10px">Achievement Leaders</div>
+              <div id="achievementLeaderList" class="list"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <article class="card reveal">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <h2>Network Explorer</h2>
+            <div class="sub">Use the graph to inspect how founders, investors, achievements, and startups connect.</div>
+          </div>
+          <span class="badge" id="networkBadge">Interactive</span>
+        </div>
+        <div class="mini-note" style="margin-top:10px">The graph renders lazily to keep the rest of the dashboard fast.</div>
+        <div class="graph-shell" style="margin-top:14px">
+          <svg id="networkGraph" viewBox="0 0 960 470" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="graphTip" class="graph-tip"></div>
+        </div>
+      </article>
+
+      <div class="grid2 analyst-detail-grid">
+        <article class="card reveal">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <h2>Detailed Analytics</h2>
+              <div class="sub">Searchable and filtered tables for quick drill-down.</div>
+            </div>
+            <span class="badge" id="detailBadge">Filtered</span>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div>
+              <div class="meta" style="margin-bottom:10px">Filtered Startup Table</div>
+              <div id="startupTable" class="table-shell"></div>
+            </div>
+            <div>
+              <div class="meta" style="margin-bottom:10px">Investor Leaderboard</div>
+              <div id="leaderboardList" class="list"></div>
+            </div>
+          </div>
+        </article>
+        <article class="card reveal">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <h2>Anomaly & Search Watch</h2>
+              <div class="sub">Surface outliers and probable issues without overwhelming the user.</div>
+            </div>
+            <span class="badge warn">Focused</span>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div id="insightAlerts" class="list"></div>
+            <div class="meta">Filtered entity matches</div>
+            <div id="searchResults" class="list"></div>
+          </div>
+        </article>
+      </div>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="/frontend/core.js"></script>
+  <script src="/frontend/analyst-page.js"></script>
+  <script>initAnalystPage();</script>
+</body>
+</html>

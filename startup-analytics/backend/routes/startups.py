@@ -1,8 +1,9 @@
 import hashlib
 from uuid import uuid4
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 
+from backend.auth import require_role
 from backend.db import cache_delete_pattern, cache_get, cache_set, get_session, view_get
 from backend.matching import compute_matches, get_cached_or_compute_startup_matches, invalidate_related_match_caches
 from backend.models import StartupCreate
@@ -24,6 +25,7 @@ async def get_startups_feed(
     stage: str | None = None,
     min_ask: float | None = Query(default=None),
     max_ask: float | None = Query(default=None),
+    _: dict = Depends(require_role("INVESTOR", "ANALYST")),
 ):
     raw_filters = f"{sector}|{stage}|{min_ask}|{max_ask}"
     filter_hash = hashlib.md5(raw_filters.encode("utf-8")).hexdigest()
@@ -54,7 +56,11 @@ async def get_startups_feed(
 
 
 @router.post("/register")
-async def register_startup(payload: StartupCreate, background_tasks: BackgroundTasks):
+async def register_startup(
+    payload: StartupCreate,
+    background_tasks: BackgroundTasks,
+    _: dict = Depends(require_role("STARTUP")),
+):
     startup = payload.model_dump()
     startup["id"] = str(uuid4())
 
@@ -85,7 +91,10 @@ async def register_startup(payload: StartupCreate, background_tasks: BackgroundT
 
 
 @router.get("/{startup_id}")
-async def get_startup(startup_id: str):
+async def get_startup(
+    startup_id: str,
+    _: dict = Depends(require_role("INVESTOR", "ANALYST", "STARTUP")),
+):
     cache_key = _startup_cache_key(startup_id)
     cached = cache_get(cache_key)
     if cached is not None:
@@ -95,7 +104,7 @@ async def get_startup(startup_id: str):
     MATCH (s:Startup {id: $startup_id})
     RETURN s {
       .id, .name, .sector, .stage, .funding_ask, .equity_offered,
-      .pitch, .team_size, .revenue, .founded
+      .pitch, .team_size, .revenue, .founded, .received_funding
     } AS startup
     """
     with get_session() as session:
@@ -110,12 +119,18 @@ async def get_startup(startup_id: str):
 
 
 @router.get("/{startup_id}/viewers")
-async def get_startup_viewers(startup_id: str):
+async def get_startup_viewers(
+    startup_id: str,
+    _: dict = Depends(require_role("STARTUP")),
+):
     viewers = view_get(startup_id)
     return {"startup_id": startup_id, "viewers": viewers}
 
 
 @router.get("/{startup_id}/matches")
-async def get_startup_matches(startup_id: str):
+async def get_startup_matches(
+    startup_id: str,
+    _: dict = Depends(require_role("STARTUP")),
+):
     matches = get_cached_or_compute_startup_matches(startup_id)
     return {"startup_id": startup_id, "matches": matches}

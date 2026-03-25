@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Startup Workspace</title>
+  <link rel="stylesheet" href="/frontend/common.css">
+</head>
+<body>
+  <div class="workspace-shell">
+    <section class="hero workspace-header reveal">
+      <div class="workspace-top">
+        <div class="headline-stack">
+          <div class="badge">Startup Command Center</div>
+          <h1 id="workspaceTitle">Startup Workspace</h1>
+          <p>Track your profile, publish milestones, monitor investor attention, and review your highest-conviction funding matches from one focused workspace.</p>
+        </div>
+        <div class="workspace-actions">
+          <span id="apiHealthBadge" class="badge">Checking backend</span>
+          <button id="themeToggleButton" class="theme-toggle" type="button">Switch to Dark</button>
+          <button id="refreshWorkspaceButton" class="ghost" type="button">Refresh</button>
+          <button id="logoutButton" class="secondary" type="button">Logout</button>
+        </div>
+      </div>
+
+      <div class="workspace-summary">
+        <div class="workspace-hero-panel">
+          <div class="pill-row">
+            <span id="signedInLine" class="badge">Signed in</span>
+            <span id="startupProfileSource" class="badge">Profile loading</span>
+            <span id="achievementSource" class="badge">Timeline loading</span>
+          </div>
+          <div id="workspaceHint" class="workspace-caption">Startup-specific actions live here.</div>
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <div class="metric-label">Achievements Posted</div>
+              <div id="startupAchievementCount" class="metric-value">0</div>
+              <div class="metric-sub">Verified and pending milestones on your timeline.</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Investor Viewers</div>
+              <div id="startupViewerCount" class="metric-value">0</div>
+              <div class="metric-sub">Unique investors who have opened your profile.</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Active Matches</div>
+              <div id="startupMatchCount" class="metric-value">0</div>
+              <div class="metric-sub">Live investor matches scored with graph context.</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="workspace-health-panel">
+          <div class="metric-label">Platform Link</div>
+          <div class="metric-value" style="font-size:1.25rem">FastAPI + Neo4j + Redis</div>
+          <div class="metric-sub">Your startup workspace is powered by graph-backed matching and cached activity insights.</div>
+          <div id="apiHealthLine" class="panel-note" style="margin-top:14px">Checking backend health...</div>
+        </aside>
+      </div>
+    </section>
+
+    <main class="workspace-grid">
+      <section class="workspace-row reveal">
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Startup Profile Snapshot</h2>
+              <p>Live operational profile pulled from Neo4j, including capital demand and traction indicators.</p>
+            </div>
+          </div>
+          <div id="startupProfileView" class="empty-state">Loading startup profile...</div>
+        </article>
+
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Post New Achievement</h2>
+              <p>Publish milestones so investors and analysts can evaluate progress and momentum in real time.</p>
+            </div>
+          </div>
+          <form id="achievementForm" class="stack-lg">
+            <div class="form-grid">
+              <label>Type
+                <select name="type" required>
+                  <option value="revenue">Revenue</option>
+                  <option value="partnership">Partnership</option>
+                  <option value="product">Product</option>
+                  <option value="funding">Funding</option>
+                  <option value="team">Team</option>
+                  <option value="award">Award</option>
+                </select>
+              </label>
+              <label>Date<input name="date" type="date" required></label>
+              <label>Title<input name="title" required placeholder="Crossed INR 1 Crore ARR"></label>
+              <label>Value<input name="value" type="number" min="0" step="1" placeholder="Optional"></label>
+            </div>
+            <label>Description<textarea name="description" placeholder="Describe the milestone, outcome, or traction signal"></textarea></label>
+            <label>Media URL<input name="media_url" placeholder="Proof link, release, or external reference"></label>
+            <div class="action-row">
+              <button class="primary" type="submit">Post Achievement</button>
+              <div class="workspace-caption">New posts refresh your timeline and can improve your investor match quality.</div>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section class="workspace-row equal reveal">
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Achievement Timeline</h2>
+              <p>Your latest traction story, ready for investor review.</p>
+            </div>
+          </div>
+          <div id="achievementTimeline" class="timeline-shell"></div>
+        </article>
+
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Investor Signals</h2>
+              <p>See who is paying attention and what connection requests need action.</p>
+            </div>
+          </div>
+          <div class="split-grid">
+            <div>
+              <h3>Profile Viewers</h3>
+              <div id="startupViewersList" class="list-tight" style="margin-top:14px"></div>
+            </div>
+            <div>
+              <h3>Connection Requests</h3>
+              <div id="startupConnectionsList" class="list-tight" style="margin-top:14px"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="reveal">
+        <article class="section-card stack-lg">
+          <div class="section-header">
+            <div>
+              <h2>Best Investor Matches</h2>
+              <p>Prioritized investors scored across sector fit, ticket size, stage alignment, network proximity, and achievement momentum.</p>
+            </div>
+          </div>
+          <div id="startupMatchesList" class="list-tight"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="/frontend/core.js"></script>
+  <script src="/frontend/startup-page.js"></script>
+  <script>initStartupPage();</script>
+</body>
+</html>

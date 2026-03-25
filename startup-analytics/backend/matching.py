@@ -17,8 +17,12 @@ OPTIONAL MATCH path = (i)-[:INVESTED_IN*1..2]->(other:Startup)
 WHERE other.sector = s.sector
 WITH i, sector_score, ticket_score, stage_score,
   CASE WHEN count(path) > 0 THEN 10 ELSE 0 END AS network_score
-WITH i, sector_score, ticket_score, stage_score, network_score,
-  (sector_score + ticket_score + stage_score + network_score) AS total_score
+OPTIONAL MATCH (s)-[:HAS_ACHIEVEMENT]->(a:Achievement)
+WHERE a.date >= date() - duration({days: 90})
+WITH i, s, sector_score, ticket_score, stage_score, network_score,
+  CASE WHEN count(a) >= 3 THEN 10 ELSE 0 END AS achievement_score
+WITH i, sector_score, ticket_score, stage_score, network_score, achievement_score,
+  (sector_score + ticket_score + stage_score + network_score + achievement_score) AS total_score
 WHERE total_score > 0
 RETURN
   i.id AS id,
@@ -29,7 +33,8 @@ RETURN
   sector_score,
   ticket_score,
   stage_score,
-  network_score
+  network_score,
+  achievement_score
 ORDER BY total_score DESC, name ASC
 LIMIT 10
 """
@@ -59,8 +64,12 @@ OPTIONAL MATCH path = (i)-[:INVESTED_IN*1..2]->(other:Startup)
 WHERE other.sector = s.sector
 WITH s, sector_score, ticket_score, stage_score,
   CASE WHEN count(path) > 0 THEN 10 ELSE 0 END AS network_score
+OPTIONAL MATCH (s)-[:HAS_ACHIEVEMENT]->(a:Achievement)
+WHERE a.date >= date() - duration({days: 90})
 WITH s, sector_score, ticket_score, stage_score, network_score,
-  (sector_score + ticket_score + stage_score + network_score) AS total_score
+  CASE WHEN count(a) >= 3 THEN 10 ELSE 0 END AS achievement_score
+WITH s, sector_score, ticket_score, stage_score, network_score, achievement_score,
+  (sector_score + ticket_score + stage_score + network_score + achievement_score) AS total_score
 WHERE total_score > 0
 RETURN
   s.id AS id,
@@ -72,7 +81,8 @@ RETURN
   sector_score,
   ticket_score,
   stage_score,
-  network_score
+  network_score,
+  achievement_score
 ORDER BY total_score DESC, name ASC
 LIMIT 10
 """

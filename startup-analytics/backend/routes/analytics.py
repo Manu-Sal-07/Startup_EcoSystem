@@ -1,12 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from backend.auth import require_role
 from backend.db import cache_get, cache_set, get_session, r
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
 @router.get("/network")
-async def get_network():
+async def get_network(_: dict = Depends(require_role("ANALYST"))):
     cache_key = "analytics:network"
     cached = cache_get(cache_key)
     if cached is not None:
@@ -40,7 +41,7 @@ async def get_network():
 
 
 @router.get("/leaderboard")
-async def get_leaderboard():
+async def get_leaderboard(_: dict = Depends(require_role("ANALYST"))):
     leaders = r.zrevrange("leaderboard:investors", 0, 19, withscores=True)
     return {
         "items": [
@@ -51,7 +52,7 @@ async def get_leaderboard():
 
 
 @router.get("/sector-trends")
-async def get_sector_trends():
+async def get_sector_trends(_: dict = Depends(require_role("ANALYST"))):
     cache_key = "analytics:sector-trends"
     cached = cache_get(cache_key)
     if cached is not None:
@@ -70,7 +71,7 @@ async def get_sector_trends():
 
 
 @router.get("/hot-sectors")
-async def get_hot_sectors():
+async def get_hot_sectors(_: dict = Depends(require_role("ANALYST"))):
     cache_key = "analytics:hot-sectors"
     cached = cache_get(cache_key)
     if cached is not None:
@@ -90,7 +91,7 @@ async def get_hot_sectors():
 
 
 @router.get("/influence")
-async def get_influence():
+async def get_influence(_: dict = Depends(require_role("ANALYST"))):
     cache_key = "analytics:influence"
     cached = cache_get(cache_key)
     if cached is not None:

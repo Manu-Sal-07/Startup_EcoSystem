@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | Startup Ecosystem Platform</title>
+  <link rel="stylesheet" href="/frontend/common.css">
+</head>
+<body>
+  <section class="auth-shell">
+    <div class="auth-panel">
+      <aside class="auth-aside">
+        <div class="badge" style="background:rgba(255,255,255,.18);color:white;width:max-content">Startup Ecosystem Platform</div>
+        <h1>Login and land directly in the right workspace.</h1>
+        <p style="margin:0;line-height:1.7;color:rgba(255,255,255,.82)">Each role now has a focused premium workspace. Startups manage momentum, investors track deals and capital, and analysts review the ecosystem through graph-backed intelligence.</p>
+        <div class="role-pills">
+          <span class="role-pill">Startup page</span>
+          <span class="role-pill">Investor page</span>
+          <span class="role-pill">Analyst page</span>
+        </div>
+        <div class="hero-metrics" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+          <div class="metric-card" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);">
+            <div class="metric-label" style="color:rgba(255,255,255,.72)">Graph-backed</div>
+            <div class="metric-value" style="font-size:1.4rem;color:white">Neo4j</div>
+            <div class="metric-sub" style="color:rgba(255,255,255,.72)">Matching, funding, achievements</div>
+          </div>
+          <div class="metric-card" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);">
+            <div class="metric-label" style="color:rgba(255,255,255,.72)">Fast reads</div>
+            <div class="metric-value" style="font-size:1.4rem;color:white">Redis</div>
+            <div class="metric-sub" style="color:rgba(255,255,255,.72)">Caching, locks, and JWT revocation</div>
+          </div>
+        </div>
+        <div class="muted-box" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:white">
+          Seeded analyst login:
+          <br>
+          <strong>analyst@platform.com</strong> / <strong>analyst123</strong>
+        </div>
+      </aside>
+      <div class="auth-card">
+        <div class="section-header">
+          <div class="stack" style="gap:8px">
+            <h2>Sign In</h2>
+            <div class="sub">Use an existing account and we will route you to the correct role workspace automatically.</div>
+          </div>
+          <button id="themeToggleButton" class="theme-toggle" type="button">Switch to Dark</button>
+        </div>
+        <form id="loginForm" class="stack">
+          <label>Email<input id="loginEmail" type="email" placeholder="Email address" required></label>
+          <label>Password<input id="loginPassword" type="password" placeholder="Password" required></label>
+          <label>Role
+            <select id="loginRole">
+              <option value="STARTUP">STARTUP</option>
+              <option value="INVESTOR">INVESTOR</option>
+              <option value="ANALYST">ANALYST</option>
+            </select>
+          </label>
+          <div class="panel-note">Tip: the role selector must match the account role returned by the backend. This helps evaluators see RBAC clearly during demos.</div>
+          <div class="inline">
+            <button class="primary" type="submit">Sign In</button>
+            <button id="goToRegister" class="ghost" type="button">Register</button>
+          </div>
+          <div id="loginError" class="hidden error-text"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+  <div id="toast" class="toast"></div>
+  <script src="/frontend/core.js"></script>
+  <script src="/frontend/auth-pages.js"></script>
+  <script>initLoginPage();</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 import os
 import json
+import time
+from uuid import uuid4
 try:
     import redis
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
@@ -48,6 +50,38 @@ def cache_delete_pattern(pattern):
     keys = r.keys(pattern)
     if keys:
         r.delete(*keys)
+
+
+def blacklist_token(jti, ttl):
+    r.setex(f"blacklist:token:{jti}", ttl, "1")
+
+
+def is_blacklisted(jti):
+    return bool(r.exists(f"blacklist:token:{jti}"))
+
+
+def achievement_cache_key(startup_id):
+    return f"achievements:{startup_id}"
+
+
+def acquire_fund_lock(startup_id, ttl=10):
+    lock_key = f"fund_lock:startup:{startup_id}"
+    lock_token = str(uuid4())
+    for _ in range(3):
+        acquired = r.set(lock_key, lock_token, nx=True, ex=ttl)
+        if acquired:
+            return lock_token
+        time.sleep(0.35)
+    return None
+
+
+def release_fund_lock(startup_id, lock_token):
+    lock_key = f"fund_lock:startup:{startup_id}"
+    stored = r.get(lock_key)
+    if stored and stored == lock_token:
+        r.delete(lock_key)
+        return True
+    return False
 
 
 def view_log(startup_id, investor_id, ts=None):

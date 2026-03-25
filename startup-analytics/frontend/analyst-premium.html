@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Premium Analyst Dashboard</title>
+  <!-- Link to the newly designed Premium CSS -->
+  <link rel="stylesheet" href="/frontend/analyst-premium.css">
+  
+  <!-- Required External Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  
+  <!-- Feather Icons for a modern feel -->
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+  <div class="app-shell">
+    
+    <!-- Top Navigation -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon">A</div>
+        <h1 style="font-size: 1.25rem; font-weight: 700;">Analyst Control Room</h1>
+      </div>
+      
+      <div class="nav-actions">
+        <!-- Interactive Controls -->
+        <span id="apiHealthBadge" class="badge warning">Checking backend...</span>
+        <button id="refreshWorkspaceButton" class="btn btn-outline" type="button" title="Force Refresh">
+          <i data-feather="refresh-cw" style="width: 14px; height: 14px; margin-right: 6px;"></i> Refresh
+        </button>
+        <button id="exportSummaryButton" class="btn btn-outline" type="button" title="Download Print Summary">
+          <i data-feather="download" style="width: 14px; height: 14px; margin-right: 6px;"></i> Export PDF
+        </button>
+        <button id="logoutButton" class="btn btn-primary" type="button">
+          <i data-feather="log-out" style="width: 14px; height: 14px; margin-right: 6px;"></i> Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <main class="main-content">
+      
+      <!-- Context & Filters Header -->
+      <section class="page-header mt-2">
+        <div>
+          <h2 id="workspaceTitle" style="font-size: 2rem;">Ecosystem Intelligence</h2>
+          <div class="text-micro mt-1" id="workspaceHint">Premium analytics view for investors, founders, and technical reviewers.</div>
+          <div class="text-muted" id="signedInLine">Connecting securely...</div>
+          <div id="lastUpdatedLine" class="text-micro mt-2">Last refreshed: waiting</div>
+          <div id="filterStatus" class="text-micro mt-2">Preparing filters...</div>
+        </div>
+        
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Time Window</label>
+            <select id="timeRangeFilter" class="filter-input">
+              <option value="7">Last 7 Days</option>
+              <option value="30" selected>Last 30 Days</option>
+              <option value="90">Last Quarter</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Sector</label>
+            <select id="sectorFilter" class="filter-input">
+              <option value="">All Sectors</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Search Ecosystem</label>
+            <input id="entitySearch" type="search" class="filter-input" placeholder="Find startups, investors...">
+          </div>
+          <div class="filter-group">
+            <label>Detail Depth</label>
+            <select id="detailLimitFilter" class="filter-input" style="min-width: 100px;">
+              <option value="5">Top 5</option>
+              <option value="10" selected>Top 10</option>
+              <option value="20">Top 20</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: Top KPIs -->
+      <section class="grid-4 mt-4">
+        <div class="card kpi-card accent-blue">
+          <div class="text-muted">Total Startups</div>
+          <div id="statStartups" class="kpi-value">-</div>
+          <div class="kpi-trend positive"><i data-feather="trending-up" style="width:14px;height:14px"></i> Active pipeline</div>
+        </div>
+        <div class="card kpi-card accent-indigo">
+          <div class="text-muted">Total Investors</div>
+          <div id="statInvestors" class="kpi-value">-</div>
+          <div class="kpi-trend positive"><i data-feather="users" style="width:14px;height:14px"></i> Capital participants</div>
+        </div>
+        <div class="card kpi-card accent-green">
+          <div class="text-muted">Transaction Readiness</div>
+          <div id="statCapital" class="kpi-value">-</div>
+          <div class="kpi-trend positive"><i data-feather="dollar-sign" style="width:14px;height:14px"></i> Total tracked funding Ask</div>
+        </div>
+        <div class="card kpi-card accent-orange">
+          <div class="text-muted">Sector Focus / Density</div>
+          <div style="display: flex; gap: 8px; align-items: baseline;">
+            <div id="statHotSector" class="kpi-value" style="font-size: 1.5rem;">-</div>
+            <div id="statEdges" class="kpi-value" style="font-size: 1rem; color: var(--text-secondary)">(-)</div>
+          </div>
+          <div class="text-micro mt-1">Leading Vertical & Net Density</div>
+        </div>
+      </section>
+
+      <section class="grid-4 mt-4">
+        <div class="card">
+          <div class="text-muted">Growth Signal</div>
+          <div id="growthSignal" class="kpi-value" style="font-size: 1.3rem;">-</div>
+          <div id="growthSignalSub" class="text-micro mt-2">Waiting for momentum data...</div>
+        </div>
+        <div class="card">
+          <div class="text-muted">Conversion Signal</div>
+          <div id="conversionSignal" class="kpi-value" style="font-size: 1.3rem;">-</div>
+          <div id="conversionSignalSub" class="text-micro mt-2">Waiting for engagement data...</div>
+        </div>
+        <div class="card">
+          <div class="text-muted">System Pulse</div>
+          <div id="systemPulse" class="kpi-value" style="font-size: 1.3rem;">-</div>
+          <div id="systemPulseSub" class="text-micro mt-2">Waiting for API telemetry...</div>
+        </div>
+        <div class="card">
+          <div class="text-muted">Risk Watch</div>
+          <div id="riskWatch" class="kpi-value" style="font-size: 1.3rem;">-</div>
+          <div id="riskWatchSub" class="text-micro mt-2">Waiting for anomaly signals...</div>
+        </div>
+      </section>
+
+      <!-- Section 2: Technical/Operations Dash -->
+      <section class="grid-2 mt-4">
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h3>System & Database Operations</h3>
+              <div class="text-muted mt-1">Live query volume and latencies</div>
+            </div>
+            <span id="opsBadge" class="badge success">Live</span>
+          </header>
+          <div class="card-body">
+            <div class="grid-2" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+              <div class="insight-label">
+                <span class="text-micro">Requests</span>
+                <strong class="insight-value" id="opsRequests">-</strong>
+              </div>
+              <div class="insight-label">
+                <span class="text-micro">Avg Latency</span>
+                <strong class="insight-value" id="opsLatency">-</strong>
+              </div>
+            </div>
+            <div class="chart-container mt-6">
+              <canvas id="opsTrendChart"></canvas>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h3>Health & Errors</h3>
+              <div class="text-muted mt-1">Reliability indicators</div>
+            </div>
+            <div class="insight-label text-right">
+              <span class="text-micro">Failure Rate</span>
+              <strong class="insight-value" id="opsFailureRate" style="color: var(--status-danger)">-</strong>
+            </div>
+          </header>
+          <div class="card-body" style="display: flex; gap: 1rem;">
+            <div class="chart-container" style="flex: 1; height: 200px;">
+              <canvas id="opsStatusChart"></canvas>
+            </div>
+            <div style="flex: 1; border-left: 1px solid var(--border-color); padding-left: 1rem;">
+              <h4 class="text-micro mb-2">Error Logs</h4>
+              <div id="opsErrors" class="insight-list mt-4" style="max-height: 200px; overflow-y: auto;">
+                <!-- Error logs injected here -->
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 3: Business Insights -->
+      <section class="card mt-4">
+        <header class="card-header">
+          <div>
+            <h2>Sector & Attention Insights</h2>
+            <div class="text-muted mt-1">Investor grade capital flow and concentration</div>
+          </div>
+          <div style="display:flex; gap:.75rem; align-items:center;">
+            <span id="businessBadge" class="badge">0 sectors visible</span>
+            <button id="exportTableButton" class="btn btn-outline"><i data-feather="bar-chart-2" style="width:14px;height:14px;margin-right:4px;"></i> Export Table</button>
+          </div>
+        </header>
+        <div class="card-body grid-2">
+          <div>
+            <h4 class="text-micro mb-2" style="margin-bottom: 1rem;">Funding Demand By Sector</h4>
+            <div class="chart-container" style="height: 240px;">
+              <canvas id="sectorChart"></canvas>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-micro mb-2" style="margin-bottom: 1rem;">Attention Distribution</h4>
+            <div class="chart-container" style="height: 240px;">
+              <canvas id="distributionChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Section 4: Momentum & Activity Arrays -->
+      <section class="grid-2 mt-4">
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h3>Growth Momentum</h3>
+              <div id="overviewBadge" class="text-micro mt-1">0 startups in view</div>
+            </div>
+          </header>
+          <div class="card-body insight-list" id="hotSectorsList">
+            <!-- Driven by JS -->
+          </div>
+        </article>
+        <article class="card">
+          <header class="card-header">
+             <div>
+               <h3>Achievement Leaders</h3>
+               <div id="detailBadge" class="text-micro mt-1">Top 10 row focus</div>
+             </div>
+          </header>
+          <div class="card-body insight-list" id="achievementLeaderList">
+            <!-- Driven by JS -->
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 5: The Ecosystem Graph -->
+      <section class="card mt-4" style="overflow: visible;">
+        <header class="card-header">
+          <div>
+            <h2>Knowledge Graph Explorer</h2>
+            <div class="text-muted mt-1">Interactive network traversal of entities</div>
+          </div>
+          <span id="networkBadge" class="badge">Render on scroll</span>
+        </header>
+        <div class="card-body" style="padding: 0;">
+          <div class="graph-shell" style="position: relative;">
+            <svg id="networkGraph"></svg>
+            <div id="graphTip" style="position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 4px; pointer-events: none; opacity: 0; font-size: 0.75rem;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Detail Views (Tables) -->
+      <section class="grid-2 mt-4" style="margin-bottom: 4rem;">
+        <article class="card" style="grid-column: span 2;">
+          <header class="card-header">
+             <h3>Ecosystem Entities (Filtered)</h3>
+          </header>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-wrapper" id="startupTable">
+              <!-- Replaced by JS -->
+            </div>
+          </div>
+        </article>
+        <article class="card">
+          <header class="card-header">
+            <h3>Investor Leaderboard</h3>
+          </header>
+          <div class="card-body insight-list" id="leaderboardList"></div>
+        </article>
+        <article class="card">
+          <header class="card-header">
+            <h3>Alerts & Search</h3>
+          </header>
+          <div class="card-body">
+            <div id="insightAlerts" class="insight-list"></div>
+            <div class="mt-4"></div>
+            <div id="searchResults" class="insight-list"></div>
+          </div>
+        </article>
+      </section>
+
+      <div style="display: none;">
+        <div id="apiHealthLine"></div>
+        <div id="statEngagement"></div>
+      </div>
+      
+    </main>
+  </div>
+  
+  <div id="toast" style="position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 24px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 1000;"></div>
+
+  <script>
+    feather.replace();
+  </script>
+  <!-- Load Original Scripts to power the dashboard -->
+  <script src="/frontend/core.js"></script>
+  <script src="/frontend/analyst-page.js"></script>
+  <script>
+    if (typeof initAnalystPage === 'function') {
+      initAnalystPage();
+    }
+  </script>
+</body>
+</html>

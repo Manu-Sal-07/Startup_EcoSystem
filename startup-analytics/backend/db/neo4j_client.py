@@ -1,4 +1,5 @@
 import os
+import time
 from contextlib import contextmanager
 
 try:
@@ -36,16 +37,32 @@ def get_session():
     finally:
         session.close()
 
-def verify_connectivity():
-    try:
-        driver = get_driver()
-        driver.verify_connectivity()
-        return True
-    except Exception:
-        return False
+def verify_connectivity(retries: int = 3, delay_seconds: float = 1.0):
+    for attempt in range(retries):
+        try:
+            driver = get_driver()
+            driver.verify_connectivity()
+            return True
+        except Exception:
+            if attempt == retries - 1:
+                return False
+            time.sleep(delay_seconds)
 
 
 def ensure_indexes():
     with get_session() as session:
         for statement in INDEX_STATEMENTS:
             session.run(statement).consume()
+
+
+def get_user_by_email(email: str) -> dict | None:
+    with get_session() as session:
+        result = session.run(
+            """
+            MATCH (u)
+            WHERE toLower(u.email) = toLower($e)
+            RETURN u.id AS id, u.role AS role, u.password_hash AS pw, u.name AS name
+            """,
+            e=email,
+        ).single()
+        return result.data() if result else None
