@@ -1,7 +1,3 @@
----
-
-## ✅ Your Jenkinsfile should look EXACTLY like this:
-
 :::writing{variant="standard" id="clean001"}
 pipeline {
     agent any
@@ -36,4 +32,3 @@ pipeline {
 }
 :::
 
----
