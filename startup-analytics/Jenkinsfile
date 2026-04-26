@@ -27,5 +27,13 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('startup-analytics') {
+                    sh 'docker build -t startup-analytics .'
+                }
+            }
+        }
     }
 }
