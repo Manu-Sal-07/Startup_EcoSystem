@@ -54,5 +54,23 @@ pipeline {
                 sh 'docker push manud07/startup-analytics:latest'
             }
         }
+
+        stage('Deploy') {
+            steps {
+                dir('startup-analytics/docker') {
+                    sh '''
+                        docker-compose down
+                        docker-compose pull
+                        docker-compose up -d
+                    '''
+                }
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                sh 'curl -f http://localhost:8000/health'
+            }
+        }
     }
 }

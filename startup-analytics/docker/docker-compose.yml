@@ -1,8 +1,6 @@
 services:
   api:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    image: manud07/startup-analytics:latest
     container_name: startup-analytics-api
     environment:
       NEO4J_URI: ${NEO4J_URI_DOCKER:-bolt://neo4j:7687}
