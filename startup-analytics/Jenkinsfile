@@ -50,8 +50,8 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker tag startup-analytics manud7/startup-analytics:latest'
-                sh 'docker push manud7/startup-analytics:latest'
+                sh 'docker tag startup-analytics manud07/startup-analytics:latest'
+                sh 'docker push manud07/startup-analytics:latest'
             }
         }
     }
