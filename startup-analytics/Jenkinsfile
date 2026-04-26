@@ -1,34 +1,39 @@
+---
+
+## ✅ Your Jenkinsfile should look EXACTLY like this:
+
+:::writing{variant="standard" id="clean001"}
 pipeline {
-agent any
+    agent any
 
-```
-stages {
-    stage('Checkout') {
-        steps {
-            git 'https://github.com/YOUR_USERNAME/startup-analytics.git'
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Manu-Sal-07/Startup_EcoSystem.git'
+            }
         }
-    }
 
-    stage('Install Dependencies') {
-        steps {
-            sh '''
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r backend/requirements.txt
-            pip install pytest
-            '''
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r backend/requirements.txt
+                pip install pytest
+                '''
+            }
         }
-    }
 
-    stage('Run Tests') {
-        steps {
-            sh '''
-            . venv/bin/activate
-            pytest
-            '''
+        stage('Run Tests') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pytest
+                '''
+            }
         }
     }
 }
-```
+:::
 
-}
+---
