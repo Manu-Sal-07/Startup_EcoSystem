@@ -1,34 +1,36 @@
 pipeline {
-agent any
+    agent any
 
-```
-stages {
-    stage('Checkout') {
-        steps {
-            git 'https://github.com/Manu-Sal-07/Startup_EcoSystem.git'
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('startup-analytics') {
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        python -m pip install --upgrade pip
+                        pip install -r requirements.txt
+                        pip install pytest
+                    '''
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                dir('startup-analytics') {
+                    sh '''
+                        . venv/bin/activate
+                        pytest
+                    '''
+                }
+            }
         }
     }
-
-    stage('Install Dependencies') {
-        steps {
-            sh '''
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r backend/requirements.txt
-            pip install pytest
-            '''
-        }
-    }
-
-    stage('Run Tests') {
-        steps {
-            sh '''
-            . venv/bin/activate
-            pytest
-            '''
-        }
-    }
-}
-```
-
 }
