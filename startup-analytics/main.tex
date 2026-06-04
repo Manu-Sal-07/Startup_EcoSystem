@@ -290,20 +290,21 @@
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
       \centering
+      \resizebox{\textwidth}{!}{
       \begin{tikzpicture}[
-        node distance=1.3cm and 1.5cm,
-        box/.style={rectangle, draw=CardBorder, fill=CardBg, thick, minimum width=2.2cm, minimum height=0.8cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        node distance=0.8cm and 0.8cm,
+        box/.style={rectangle, draw=CardBorder, fill=CardBg, thick, minimum width=2.2cm, minimum height=0.8cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
         primarybox/.style={box, draw=PrimaryColor, fill=PrimaryColor!5, minimum width=2.4cm},
         accentbox/.style={box, draw=AccentColor, fill=AccentColor!5},
-        dbbox/.style={cylinder, draw=SecondaryColor, fill=SecondaryColor!5, shape border rotate=90, minimum width=1.5cm, minimum height=1.0cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        dbbox/.style={cylinder, draw=SecondaryColor, fill=SecondaryColor!5, shape border rotate=90, minimum width=1.5cm, minimum height=1.0cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
         arrow/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
       ]
         % Nodes
         \node[box] (browser) {Client UI \\ (Vanilla JS / D3)};
         \node[accentbox, right=of browser] (nginx) {Nginx Proxy \\ (Port 80)};
         \node[primarybox, right=of nginx] (fastapi) {FastAPI App \\ (Port 8000)};
-        \node[dbbox, above right=0.1cm and 1.0cm of fastapi] (redis) {Redis 7 \\ (Cache/Locks)};
-        \node[dbbox, below right=0.1cm and 1.0cm of fastapi] (neo4j) {Neo4j 5.13 \\ (Graph DB)};
+        \node[dbbox, draw=WarningColor, fill=WarningColor!5, above right=0.1cm and 1.0cm of fastapi] (redis) {Redis 7 \\ (Cache/Locks)};
+        \node[dbbox, draw=SuccessColor, fill=SuccessColor!5, below right=0.1cm and 1.0cm of fastapi] (neo4j) {Neo4j 5.13 \\ (Graph DB)};
 
         % Connections
         \draw[arrow] (browser) -- node[above, font=\tiny\sffamily] {HTTP} (nginx);
@@ -311,8 +312,11 @@
         \draw[arrow] (fastapi) to[bend left=15] node[above left, font=\tiny\sffamily] {Session/Lock} (redis);
         \draw[arrow] (fastapi) to[bend right=15] node[below left, font=\tiny\sffamily] {Cypher/Bolt} (neo4j);
         
-        \node[draw=WarningColor!50, fill=WarningColor!3, dashed, fit=(redis) (neo4j), label={[font=\tiny\sffamily\bfseries, WarningColor]above:Datastores}] (dbGroup) {};
+        \begin{scope}[on background layer]
+          \node[draw=WarningColor!50, fill=WarningColor!3, dashed, fit=(redis) (neo4j), label={[font=\tiny\sffamily\bfseries, WarningColor]above:Datastores}] (dbGroup) {};
+        \end{scope}
       \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{scard}{Network Isolation}
@@ -625,8 +629,8 @@ ORDER BY total_score DESC LIMIT 10
     \begin{column}{0.65\textwidth}
       \centering
       \begin{tikzpicture}[
-        node distance=0.7cm and 0.8cm,
-        box/.style={rectangle, draw=CardBorder, fill=CardBg, rounded corners=2pt, minimum width=2.6cm, minimum height=0.5cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        node distance=0.25cm and 0.8cm,
+        box/.style={rectangle, draw=CardBorder, fill=CardBg, rounded corners=2pt, minimum width=2.6cm, minimum height=0.4cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
         lock/.style={box, draw=WarningColor, fill=WarningColor!5},
         db/.style={box, draw=PrimaryColor, fill=PrimaryColor!5},
         success/.style={box, draw=SuccessColor, fill=SuccessColor!5}
@@ -785,8 +789,8 @@ ORDER BY total_score DESC LIMIT 10
     \begin{column}{0.65\textwidth}
       \centering
       \begin{tikzpicture}[
-        node distance=0.5cm and 0.8cm,
-        stage/.style={rectangle, draw=PrimaryColor, fill=CardBg, rounded corners=3pt, minimum width=2.2cm, minimum height=0.6cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        node distance=0.35cm and 0.8cm,
+        stage/.style={rectangle, draw=PrimaryColor, fill=CardBg, rounded corners=3pt, minimum width=2.2cm, minimum height=0.5cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
         arrow/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
       ]
         % Pipeline Nodes
