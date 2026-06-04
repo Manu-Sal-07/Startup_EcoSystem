@@ -58,6 +58,8 @@ services:
     container_name: neo4j
     environment:
       - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - NEO4J_dbms_memory_heap_initial__size=${NEO4J_dbms_memory_heap_initial__size}
       - NEO4J_dbms_memory_heap_max__size=${NEO4J_dbms_memory_heap_max__size}
     ports:
