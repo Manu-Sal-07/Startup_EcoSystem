@@ -265,6 +265,24 @@ ENVEOF
                             echo ""
                         '''
 
+                        // Initial backend diagnostics
+                        sh '''
+                            echo "=== PHASE 2B: Backend Startup Diagnostics ==="
+                            echo ""
+                            echo "Container status (docker ps -a):"
+                            docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.ExitCode}}"
+                            echo ""
+                            echo "Docker Compose services:"
+                            docker-compose ps
+                            echo ""
+                            echo "Backend container details:"
+                            docker inspect startup-analytics-backend-1 2>/dev/null | grep -E "State|Status|ExitCode" | head -10 || echo "(container not found)"
+                            echo ""
+                            echo "Backend logs (last 100 lines):"
+                            docker logs startup-analytics-backend-1 2>&1 | tail -100 || echo "(no logs available)"
+                            echo ""
+                        '''
+
                         // Verify deployment
                         sh '''
                             echo "=== PHASE 3: Verify Deployment ==="
