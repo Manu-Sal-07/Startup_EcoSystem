@@ -291,24 +291,30 @@ ENVEOF
                             echo "=== PHASE 2B: Service Startup Diagnostics ==="
                             echo ""
                             echo "Container status (docker ps -a):"
-                            docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.ExitCode}}"
+                            docker ps -a || true
                             echo ""
                             echo "Docker Compose services:"
-                            docker-compose ps
+                            docker-compose ps || true
                             echo ""
                             echo "=== Neo4j Diagnostics ==="
                             echo "Neo4j logs (last 100 lines):"
-                            docker logs neo4j 2>&1 | tail -100 || echo "(neo4j logs unavailable)"
+                            docker logs neo4j 2>&1 | tail -100 || true
                             echo ""
                             echo "=== Redis Diagnostics ==="
                             echo "Redis logs (last 50 lines):"
-                            docker logs redis 2>&1 | tail -50 || echo "(redis logs unavailable)"
+                            docker logs redis 2>&1 | tail -50 || true
                             echo ""
                             echo "=== Backend Environment Variables ==="
-                            docker exec startup-analytics-backend-1 env 2>/dev/null | grep -E "NEO4J_URI|REDIS_HOST|REDIS_PORT" || echo "(container not running)"
+                            docker exec startup-analytics-backend-1 env 2>/dev/null | grep -E "NEO4J_URI|REDIS_HOST|REDIS_PORT" || true
                             echo ""
                             echo "Backend logs (last 100 lines):"
-                            docker logs startup-analytics-backend-1 2>&1 | tail -100 || echo "(backend logs unavailable)"
+                            docker logs startup-analytics-backend-1 2>&1 | tail -100 || true
+                            echo ""
+                            echo "Frontend logs (last 100 lines):"
+                            docker logs startup-analytics-frontend-1 2>&1 | tail -100 || true
+                            echo ""
+                            echo "Backend container inspect:"
+                            docker inspect startup-analytics-backend-1 || true
                             echo ""
                         '''
 
