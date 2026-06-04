@@ -99,13 +99,13 @@ async function apiCall(method, path, body = null) {
   };
   if (body) options.body = JSON.stringify(body);
   const response = await fetch(`${API_BASE}${path}`, options);
-  if (response.status === 401) {
+  const contentType = response.headers.get("content-type") || "";
+  const payload = contentType.includes("application/json") ? await response.json() : await response.text();
+  if (response.status === 401 && path !== "/auth/login") {
     clearSession();
     window.location.href = "/login";
     return null;
   }
-  const contentType = response.headers.get("content-type") || "";
-  const payload = contentType.includes("application/json") ? await response.json() : await response.text();
   if (!response.ok) throw typeof payload === "string" ? { detail: payload } : payload;
   return payload;
 }

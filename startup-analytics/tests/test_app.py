@@ -120,6 +120,15 @@ def test_root_serves_frontend(monkeypatch):
     assert "Register" in resp.text
 
 
+def test_favicon_does_not_404(monkeypatch):
+    monkeypatch.setattr("backend.app.neo4j_client.ensure_indexes", lambda: None)
+
+    with TestClient(app) as client:
+        resp = client.get("/favicon.ico")
+
+    assert resp.status_code == 204
+
+
 def test_login_returns_token(monkeypatch):
     monkeypatch.setattr("backend.app.neo4j_client.ensure_indexes", lambda: None)
     monkeypatch.setattr(

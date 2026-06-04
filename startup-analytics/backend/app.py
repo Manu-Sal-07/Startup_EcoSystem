@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.auth import router as auth_router
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from backend.db import neo4j_client, redis_client
 from backend import seed_data
@@ -65,6 +65,11 @@ app.mount("/frontend", NoCacheStaticFiles(directory=FRONTEND_DIR), name="fronten
 @app.get("/", include_in_schema=False)
 async def frontend_home():
     return FileResponse(INDEX_FILE, headers=NO_CACHE_HEADERS)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204, headers=NO_CACHE_HEADERS)
 
 
 @app.get("/login", include_in_schema=False)
