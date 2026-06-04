@@ -124,7 +124,7 @@ pipeline {
                         // Stop existing services
                         sh '''
                             echo "Stopping existing Docker services..."
-                            docker compose down --remove-orphans 2>/dev/null || true
+                            docker-compose down --remove-orphans 2>/dev/null || true
                             sleep 3
                             echo "✓ Existing services stopped"
                         '''
@@ -132,7 +132,7 @@ pipeline {
                         // Start new services
                         sh '''
                             echo "Starting Docker services with new images..."
-                            docker compose up -d \
+                            docker-compose up -d \
                               --force-recreate \
                               --remove-orphans
                             sleep 5
@@ -216,7 +216,7 @@ pipeline {
                         sh '''
                             echo ""
                             echo "All services health check summary:"
-                            docker compose ps
+                            docker-compose ps
                         '''
                     }
                 }
@@ -273,7 +273,7 @@ pipeline {
                 echo "Build URL:    ${BUILD_URL}"
                 echo ""
                 echo "DEBUG: Show last 50 lines of build log"
-                sh 'docker compose logs --tail=50 2>/dev/null || true'
+                sh 'docker-compose logs --tail=50 2>/dev/null || true'
             }
         }
 
