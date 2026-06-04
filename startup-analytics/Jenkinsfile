@@ -189,6 +189,22 @@ pipeline {
                 }
                 dir("${WORKSPACE_DIR}") {
                     script {
+                        // Prepare environment configuration
+                        sh '''
+                            echo "Preparing environment configuration..."
+                            if [ ! -f .env ]; then
+                              echo ".env not found, creating from .env.example..."
+                              cp .env.example .env
+                              echo "✓ .env created from .env.example"
+                            else
+                              echo "✓ .env already exists"
+                            fi
+                            echo ""
+                            echo "=== Environment Variables ==="
+                            cat .env
+                            echo ""
+                        '''
+
                         // Stop existing services
                         sh '''
                             echo "Stopping existing Docker services..."
