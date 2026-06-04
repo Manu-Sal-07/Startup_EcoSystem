@@ -189,16 +189,26 @@ pipeline {
                 }
                 dir("${WORKSPACE_DIR}") {
                     script {
-                        // Prepare environment configuration
+                        // Generate environment configuration
                         sh '''
-                            echo "Preparing environment configuration..."
-                            if [ ! -f .env ]; then
-                              echo ".env not found, creating from .env.example..."
-                              cp .env.example .env
-                              echo "✓ .env created from .env.example"
-                            else
-                              echo "✓ .env already exists"
-                            fi
+                            echo "Generating environment configuration..."
+                            cat > .env <<'ENVEOF'
+NEO4J_AUTH=neo4j/password123
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password123
+NEO4J_URI=bolt://localhost:7687
+NEO4J_URI_DOCKER=bolt://neo4j:7687
+REDIS_HOST=localhost
+REDIS_HOST_DOCKER=redis
+REDIS_PORT=6379
+NEO4J_dbms_memory_heap_initial__size=512m
+NEO4J_dbms_memory_heap_max__size=1G
+BACKEND_IMAGE=startup-ecosystem-backend
+FRONTEND_IMAGE=startup-ecosystem-frontend
+BACKEND_PORT=8000
+FRONTEND_PORT=80
+ENVEOF
+                            echo "✓ .env generated with demo values"
                             echo ""
                             echo "=== Environment Variables ==="
                             cat .env
