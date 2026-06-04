@@ -276,10 +276,13 @@ ENVEOF
                             docker-compose ps
                             echo ""
                             echo "Backend container details:"
-                            docker inspect startup-analytics-backend-1 2>/dev/null | grep -E "State|Status|ExitCode" | head -10 || echo "(container not found)"
+                            docker inspect startup-analytics-backend-1 2>/dev/null | grep -E "\"State\"|\"Status\"|\"ExitCode\"" | head -10 || echo "(container not found)"
                             echo ""
-                            echo "Backend logs (last 100 lines):"
-                            docker logs startup-analytics-backend-1 2>&1 | tail -100 || echo "(no logs available)"
+                            echo "=== Backend Environment Variables ==="
+                            docker exec startup-analytics-backend-1 env 2>/dev/null | grep -E "NEO4J_URI|REDIS_HOST|REDIS_PORT" || echo "(container not running or env unavailable)"
+                            echo ""
+                            echo "Backend logs (last 150 lines):"
+                            docker logs startup-analytics-backend-1 2>&1 | tail -150 || echo "(no logs available)"
                             echo ""
                         '''
 
