@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = "";
 const SECTORS = ["FinTech", "HealthTech", "EdTech", "CleanTech", "SaaS", "AI/ML", "E-commerce", "BioTech"];
 const STAGES = ["Pre-Seed", "Seed", "Series A", "Series B"];
 const appState = { sectorChart: null };
