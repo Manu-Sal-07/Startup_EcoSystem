@@ -260,8 +260,25 @@ ENVEOF
                             echo "✓ Local images built"
                             echo ""
                             echo "Step 3: Start Docker services with fresh state..."
-                            docker-compose up -d --force-recreate --remove-orphans
-                            echo "✓ Services brought up"
+                            docker-compose up -d --force-recreate --remove-orphans || true
+                            echo "✓ Services command executed"
+                            echo ""
+                            echo "=== PHASE 2B: Startup Diagnostics After docker-compose up ==="
+                            echo ""
+                            echo "Container status (docker ps -a):"
+                            docker ps -a
+                            echo ""
+                            echo "Docker Compose status:"
+                            docker-compose ps
+                            echo ""
+                            echo "Backend logs (startup-analytics-backend-1):"
+                            docker logs startup-analytics-backend-1 2>&1 || true
+                            echo ""
+                            echo "Docker Compose backend logs:"
+                            docker-compose logs backend || true
+                            echo ""
+                            echo "Backend container inspect:"
+                            docker inspect startup-analytics-backend-1 || true
                             echo ""
                             echo "Step 4: Wait for services to stabilize (15 seconds)..."
                             sleep 15
