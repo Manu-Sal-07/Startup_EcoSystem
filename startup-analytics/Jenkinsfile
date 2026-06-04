@@ -310,6 +310,9 @@ ENVEOF
                             echo "Backend logs (last 100 lines):"
                             docker logs startup-analytics-backend-1 2>&1 | tail -100 || true
                             echo ""
+                            echo "Backend import traceback check:"
+                            docker run --rm startup-ecosystem-backend:dev python -c "import backend.app as m; print('IMPORT OK')" 2>&1 || true
+                            echo ""
                             echo "Frontend logs (last 100 lines):"
                             docker logs startup-analytics-frontend-1 2>&1 | tail -100 || true
                             echo ""
@@ -484,7 +487,7 @@ ENVEOF
                     echo "  Commit Message:  ${GIT_COMMIT_MSG}"
                     echo ""
                     echo "DEPLOYMENT INFORMATION"
-                    echo "  Timestamp:       ${BUILD_TIMESTAMP}"
+                    echo "  Timestamp:       ${new Date()}"
                     echo "  Frontend Image:  ${DOCKER_IMAGE_FRONTEND}:${GIT_COMMIT_SHORT}"
                     echo "  Backend Image:   ${DOCKER_IMAGE_BACKEND}:${GIT_COMMIT_SHORT}"
                     echo ""
