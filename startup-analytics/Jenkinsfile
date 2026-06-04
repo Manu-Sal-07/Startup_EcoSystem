@@ -56,51 +56,21 @@ pipeline {
                 }
                 dir("${WORKSPACE_DIR}") {
                     script {
-                        // Check Python version
+                        echo "Running backend validation inside Python Docker image..."
                         sh '''
-                            echo "Checking Python version..."
-                            python --version
-                        '''
-
-                        // Install dependencies
-                        sh '''
-                            echo "Installing backend dependencies..."
-                            pip install --upgrade pip --quiet
-                            pip install -r requirements.txt --quiet
-                            echo "✓ Dependencies installed"
-                        '''
-
-                        // Verify imports
-                        sh '''
-                            echo "Verifying FastAPI imports..."
-                            python -c "
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from backend.db import neo4j_client, redis_client
-from backend.routes import achievements_router, analytics_router, connections_router, funds_router, investors_router, startups_router
-print('✓ All imports successful')
-"
-                        '''
-
-                        // Syntax check
-                        sh '''
-                            echo "Validating Python syntax..."
-                            python -m py_compile backend/app.py
-                            echo "✓ Syntax validation passed"
-                        '''
-
-                        // Test FastAPI startup (timeout after 5 seconds)
-                        sh '''
-                            echo "Verifying FastAPI startup capability..."
-                            timeout 5 python -c "
-import sys
-try:
-    from backend.app import app
-    print('✓ FastAPI app instantiates successfully')
-except Exception as e:
-    print(f'✗ FastAPI startup error: {e}')
-    sys.exit(1)
-" || true
+                            docker run --rm \
+                              -v "${PWD}:/workspace" \
+                              -w /workspace \
+                              python:3.12-slim bash -lc "
+                                set -e
+                                python --version
+                                pip install --upgrade pip --quiet
+                                pip install -r requirements.txt --quiet
+                                python -c \"from fastapi import FastAPI; from fastapi.middleware.cors import CORSMiddleware; from backend.db import neo4j_client, redis_client; from backend.routes import achievements_router, analytics_router, connections_router, funds_router, investors_router, startups_router; print('✓ All imports successful')\"
+                                python -m py_compile backend/app.py
+                                echo '✓ Syntax validation passed'
+                                python -c \"import sys; from backend.app import app; print('✓ FastAPI app instantiates successfully')\"
+                              "
                         '''
                     }
                 }
