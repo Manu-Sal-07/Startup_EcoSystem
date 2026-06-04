@@ -96,14 +96,38 @@ pipeline {
                             docker run --rm \
                               -v "${PWD}:/workspace" \
                               -w /workspace \
-                              python:3.12-slim bash -lc 'set -e
+                              python:3.12-slim \
+                              bash -lc '
+                                echo "=== DEBUG: Container Diagnostics ==="
+                                pwd
+                                echo ""
+                                echo "=== Current Directory Listing ==="
+                                ls -la
+                                echo ""
+                                echo "=== Contents of requirements.txt ==="
+                                cat requirements.txt
+                                echo ""
+                                echo "=== Starting Python Validation ==="
+                                set -e
                                 python --version
+                                echo "✓ Python version confirmed"
+                                echo ""
+                                echo "Installing dependencies..."
                                 pip install --upgrade pip --quiet
                                 pip install -r requirements.txt --quiet
+                                echo "✓ All dependencies installed"
+                                echo ""
+                                echo "Validating imports..."
                                 python -c "from fastapi import FastAPI; from fastapi.middleware.cors import CORSMiddleware; from backend.db import neo4j_client, redis_client; from backend.routes import achievements_router, analytics_router, connections_router, funds_router, investors_router, startups_router; print(\"✓ All imports successful\")"
+                                echo ""
+                                echo "Validating app.py syntax..."
                                 python -m py_compile backend/app.py
                                 echo "✓ Syntax validation passed"
+                                echo ""
+                                echo "Validating FastAPI instantiation..."
                                 python -c "import sys; from backend.app import app; print(\"✓ FastAPI app instantiates successfully\")"
+                                echo ""
+                                echo "✓ Backend validation complete"
                               '
                         '''
                     }
