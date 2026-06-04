@@ -70,10 +70,10 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7474/db/neo4j/summary"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/7687"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
       start_period: 60s
 
   redis:
