@@ -1,39 +1,20 @@
-\frametitle{Matchmaking – Cypher Query Structure}
+\frametitle{System Verification – Pytest Infrastructure}
 \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \begin{scard}{Match Scoring Execution}
-        \fontsize{6pt}{7.5pt}\selectfont
-        \begin{verbatim}
-MATCH (i:Investor), (s:Startup {id: $startup_id})
-WITH i, s,
-  CASE WHEN s.sector IN i.preferred_sectors THEN 40
-       ELSE 0 END AS sector_score,
-  CASE WHEN i.ticket_min <= s.funding_ask
-        AND s.funding_ask <= i.ticket_max THEN 30
-       ELSE 0 END AS ticket_score,
-  CASE WHEN s.stage IN i.stage_focus THEN 20
-       ELSE 0 END AS stage_score
-OPTIONAL MATCH path = (i)-[:INVESTED_IN*1..2]->(other:Startup)
-WHERE other.sector = s.sector
-WITH i, s, sector_score, ticket_score, stage_score,
-  CASE WHEN count(path) > 0 THEN 10 ELSE 0 END AS network_score
-OPTIONAL MATCH (s)-[:HAS_ACHIEVEMENT]->(a:Achievement)
-WHERE a.date >= date() - duration({days: 90})
-WITH i, sector_score, ticket_score, stage_score,
-     network_score,
-  CASE WHEN count(a) >= 3 THEN 10 ELSE 0 END AS ach_score
-RETURN i.id, (sector_score + ticket_score + stage_score +
-             network_score + ach_score) AS total_score
-ORDER BY total_score DESC LIMIT 10
-        \end{verbatim}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Mock Testing Configurations}
+        \begin{itemize}
+          \item Simulates graph drivers to test route logics in memory.
+          \item Restricts external queries to ensure rapid execution speeds.
+          \item Mocks JWT payloads to bypass login stages during endpoint checks.
+        \end{itemize}
       \end{scard}
     \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{scard}{Execution Profile}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Boundary Testing Cases}
         \begin{itemize}
-          \item Logic executes inside the Neo4j query planner.
-          \item Minimizes runtime CPU load on Python web workers.
-          \item Traverses up to 2-hop investor relations in microseconds.
+          \item Validates transaction locks under simulated parallel conditions.
+          \item Asserts that unauthorized role access yields 403 HTTP codes.
+          \item Tests limit compliance when wallet values edge close to zero.
         \end{itemize}
       \end{scard}
     \end{column}

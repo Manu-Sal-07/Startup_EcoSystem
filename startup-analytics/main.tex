@@ -654,7 +654,7 @@ ORDER BY total_score DESC LIMIT 10
     \begin{column}{0.32\textwidth}
       \begin{scard}{Operational Flow}
         Synchronizes parallel transactions to ensure round data limits are preserved.
-      \end{scard>
+      \end{scard}
     \end{column}
   \end{columns}
 \end{frame}
@@ -693,7 +693,7 @@ ORDER BY total_score DESC LIMIT 10
           \item Increments scores instantly on successful transaction commitments.
           \item Returns top ranked lists to dashboards with zero query latency.
         \end{itemize}
-      \end{scard>
+      \end{scard}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{scard}{Profile Views Tracking}
@@ -702,7 +702,7 @@ ORDER BY total_score DESC LIMIT 10
           \item Periodic background tasks sync clicks back to the database.
           \item Mitigates database write loads from high-traffic profiles.
         \end{itemize}
-      \end{scard>
+      \end{scard}
     \end{column}
   \end{columns}
 \end{frame}
@@ -717,7 +717,7 @@ ORDER BY total_score DESC LIMIT 10
           \item Password structures secured with salted bcrypt hashing hashes.
           \item Enforces strict lifetime expiration validation on token payloads.
         \end{itemize}
-      \end{scard>
+      \end{scard}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{scard}{Token Revocation Lists}
@@ -741,7 +741,7 @@ ORDER BY total_score DESC LIMIT 10
           \item Rejects request handling if user role claims are invalid.
           \item Validates scope hierarchies dynamically per request thread.
         \end{itemize}
-      \end{scard>
+      \end{scard}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{scard}{NoSQL Injection Protections}
@@ -750,7 +750,7 @@ ORDER BY total_score DESC LIMIT 10
           \item Rejects unescaped input characters during JSON parsing.
           \item Limits graph traversal query complexity at driver configuration.
         \end{itemize}
-      \end{scard>
+      \end{scard}
     \end{column}
   \end{columns}
 \end{frame}
@@ -765,7 +765,7 @@ ORDER BY total_score DESC LIMIT 10
           \item Validates module package dependency structures.
           \item Uses auto-formatters to preserve consistent styling rules.
         \end{itemize}
-      \end{scard>
+      \end{scard}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{scard}{Pytest Verification Automation}
@@ -795,7 +795,7 @@ ORDER BY total_score DESC LIMIT 10
         \node[stage, below=of validate] (build) {\faDocker~Docker Build \\ Tag: GIT\_COMMIT};
         \node[stage, below=of build] (deploy) {\faServer~Deploy Stack \\ Compose Up};
         \node[stage, below=of deploy] (health) {\faHeartbeat~Health Checks \\ Active REST Probes};
-        \node[stage, below=of health] (summary) {\faFileAlt~Summary \\ Publish Results};
+        \node[stage, below=of health] (summary) {\faFile~Summary \\ Publish Results};
 
         % Transitions
         \draw[arrow] (checkout) -- (validate);

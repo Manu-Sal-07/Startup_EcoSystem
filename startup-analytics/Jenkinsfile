@@ -251,15 +251,19 @@ ENVEOF
                         sh '''
                             echo "=== PHASE 2: Prepare Services ==="
                             echo ""
-                            echo "Step 1: Pull latest images..."
-                            docker-compose pull || true
-                            echo "✓ Images pulled"
+                            echo "Step 1: Pull public images (neo4j, redis)..."
+                            docker-compose pull neo4j redis || true
+                            echo "✓ Public images pulled"
                             echo ""
-                            echo "Step 2: Start Docker services with fresh state..."
+                            echo "Step 2: Build local backend and frontend images with latest code..."
+                            docker-compose build --no-cache backend frontend
+                            echo "✓ Local images built"
+                            echo ""
+                            echo "Step 3: Start Docker services with fresh state..."
                             docker-compose up -d --force-recreate --remove-orphans
                             echo "✓ Services brought up"
                             echo ""
-                            echo "Step 3: Wait for services to stabilize (15 seconds)..."
+                            echo "Step 4: Wait for services to stabilize (15 seconds)..."
                             sleep 15
                             echo "✓ Stabilization complete"
                             echo ""
