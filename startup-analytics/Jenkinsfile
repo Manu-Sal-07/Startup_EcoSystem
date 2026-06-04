@@ -215,28 +215,123 @@ ENVEOF
                             echo ""
                         '''
 
-                        // Stop existing services
+                        // Full Docker cleanup
                         sh '''
-                            echo "Stopping existing Docker services..."
-                            docker-compose down --remove-orphans 2>/dev/null || true
-                            sleep 3
-                            echo "✓ Existing services stopped"
+                            echo "=== PHASE 1: Full Docker Cleanup ==="
+                            echo ""
+                            echo "Step 1: Remove Docker Compose services with volumes..."
+                            docker-compose down --remove-orphans --volumes 2>/dev/null || true
+                            sleep 2
+                            echo "✓ Docker Compose stack removed"
+                            echo ""
+                            echo "Step 2: Force remove stale startup containers..."
+                            docker rm -f $(docker ps -aq --filter "name=startup") 2>/dev/null || true
+                            echo "✓ Stale containers removed"
+                            echo ""
+                            echo "Step 3: Prune networks..."
+                            docker network prune -f 2>/dev/null || true
+                            echo "✓ Networks pruned"
+                            echo ""
+                            echo "Step 4: Prune volumes..."
+                            docker volume prune -f 2>/dev/null || true
+                            echo "✓ Volumes pruned"
+                            echo ""
+                            echo "Step 5: Verify cleanup..."
+                            echo "Active containers:"
+                            docker ps -a --filter "name=startup" --format "table {{.Names}}\t{{.State}}" || echo "  (none)"
+                            echo ""
+                            echo "Active networks:"
+                            docker network ls --filter "name=startup" --format "table {{.Name}}\t{{.Driver}}" || echo "  (none)"
+                            echo ""
+                            echo "✓ Cleanup complete"
+                            echo ""
                         '''
 
-                        // Start new services
+                        // Pull latest images and start services
                         sh '''
-                            echo "Starting Docker services with new images..."
-                            docker-compose up -d \
-                              --force-recreate \
-                              --remove-orphans
-                            sleep 5
-                            echo "✓ Services started"
+                            echo "=== PHASE 2: Prepare Services ==="
+                            echo ""
+                            echo "Step 1: Pull latest images..."
+                            docker-compose pull || true
+                            echo "✓ Images pulled"
+                            echo ""
+                            echo "Step 2: Start Docker services with fresh state..."
+                            docker-compose up -d --force-recreate --remove-orphans
+                            echo "✓ Services brought up"
+                            echo ""
+                            echo "Step 3: Wait for services to stabilize (15 seconds)..."
+                            sleep 15
+                            echo "✓ Stabilization complete"
+                            echo ""
                         '''
 
-                        // List running containers
+                        // Verify deployment
                         sh '''
-                            echo "Currently running containers:"
-                            docker ps --format "table {{.Names}}\t{{.Status}}"
+                            echo "=== PHASE 3: Verify Deployment ==="
+                            echo ""
+                            echo "Docker Compose Status:"
+                            docker-compose ps
+                            echo ""
+                            echo "All Running Containers:"
+                            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+                            echo ""
+                        '''
+
+                        // Check service health and collect logs if needed
+                        sh '''
+                            echo "=== PHASE 4: Service Health Check ==="
+                            echo ""
+                            
+                            # Check backend
+                            echo "Checking backend container..."
+                            if docker-compose ps backend | grep -q "Up"; then
+                              echo "✓ Backend container is running"
+                            else
+                              echo "✗ Backend container failed to start"
+                              echo ""
+                              echo "=== Backend Logs ==="
+                              docker-compose logs backend || true
+                              echo ""
+                            fi
+                            
+                            # Check frontend
+                            echo "Checking frontend container..."
+                            if docker-compose ps frontend | grep -q "Up"; then
+                              echo "✓ Frontend container is running"
+                            else
+                              echo "✗ Frontend container failed to start"
+                              echo ""
+                              echo "=== Frontend Logs ==="
+                              docker-compose logs frontend || true
+                              echo ""
+                            fi
+                            
+                            # Check neo4j
+                            echo "Checking Neo4j container..."
+                            if docker-compose ps neo4j | grep -q "Up"; then
+                              echo "✓ Neo4j container is running"
+                            else
+                              echo "✗ Neo4j container failed to start"
+                              echo ""
+                              echo "=== Neo4j Logs ==="
+                              docker-compose logs neo4j || true
+                              echo ""
+                            fi
+                            
+                            # Check redis
+                            echo "Checking Redis container..."
+                            if docker-compose ps redis | grep -q "Up"; then
+                              echo "✓ Redis container is running"
+                            else
+                              echo "✗ Redis container failed to start"
+                              echo ""
+                              echo "=== Redis Logs ==="
+                              docker-compose logs redis || true
+                              echo ""
+                            fi
+                            
+                            echo "✓ Health check complete"
+                            echo ""
                         '''
                     }
                 }
