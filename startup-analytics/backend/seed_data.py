@@ -329,7 +329,34 @@ def generate_seed_payload(seed: int = 42) -> dict:
     }
 
 
-def run_seed(seed: int = 42) -> dict:
+def is_database_initialized() -> bool:
+    """Check if Neo4j database already contains data."""
+    try:
+        with get_session() as session:
+            result = session.run("MATCH (n) RETURN count(n) as count").single()
+            count = result["count"]
+            return count > 0
+    except Exception as e:
+        print(f"Error checking database initialization: {e}")
+        return False
+
+
+def run_seed(seed: int = 42, skip_if_initialized: bool = True) -> dict:
+    """
+    Generate and load seed data into the database.
+    
+    Args:
+        seed: Random seed for reproducible data
+        skip_if_initialized: If True, skip seeding if database already has data
+    
+    Returns:
+        Dictionary with seeding results
+    """
+    # Check if database is already initialized
+    if skip_if_initialized and is_database_initialized():
+        print("Database already initialized - skipping seed")
+        return {"status": "skipped", "reason": "database_already_initialized"}
+    
     payload = generate_seed_payload(seed=seed)
     leaderboard_scores = defaultdict(int)
 

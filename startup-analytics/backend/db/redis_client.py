@@ -15,7 +15,15 @@ _redis_instance = None
 
 class _UnavailableRedis:
     def __getattr__(self, name):
-        raise RuntimeError("redis package is not installed")
+        raise RuntimeError("redis package is not installed or Redis is unavailable")
+
+
+class _RedisProxy:
+    def __getattr__(self, name):
+        return getattr(get_redis(), name)
+
+
+r = _RedisProxy()
 
 
 def get_redis():

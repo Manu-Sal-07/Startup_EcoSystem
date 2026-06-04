@@ -215,14 +215,14 @@ ENVEOF
                             echo ""
                         '''
 
-                        // Full Docker cleanup
+                        // Full Docker cleanup (preserving data volumes)
                         sh '''
-                            echo "=== PHASE 1: Full Docker Cleanup ==="
+                            echo "=== PHASE 1: Full Docker Cleanup (Preserving Data Volumes) ==="
                             echo ""
-                            echo "Step 1: Remove Docker Compose services with volumes..."
-                            docker-compose down --remove-orphans --volumes 2>/dev/null || true
+                            echo "Step 1: Remove Docker Compose services (WITHOUT removing volumes)..."
+                            docker-compose down --remove-orphans 2>/dev/null || true
                             sleep 2
-                            echo "✓ Docker Compose stack removed"
+                            echo "✓ Docker Compose stack removed (volumes preserved)"
                             echo ""
                             echo "Step 2: Force remove stale startup containers..."
                             docker rm -f $(docker ps -aq --filter "name=startup") 2>/dev/null || true
@@ -232,18 +232,22 @@ ENVEOF
                             docker network prune -f 2>/dev/null || true
                             echo "✓ Networks pruned"
                             echo ""
-                            echo "Step 4: Prune volumes..."
-                            docker volume prune -f 2>/dev/null || true
-                            echo "✓ Volumes pruned"
+                            echo "Step 4: Remove only dangling images (keep data volumes)..."
+                            docker image prune -f 2>/dev/null || true
+                            echo "✓ Dangling images pruned (data volumes preserved)"
                             echo ""
-                            echo "Step 5: Verify cleanup..."
+                            echo "Step 5: Verify data volumes still exist..."
+                            echo "Named data volumes:"
+                            docker volume ls --filter "name=neo4j_data|redis_data" --format "table {{.Name}}\t{{.Mountpoint}}" || echo "  (none found yet - will be created)"
+                            echo ""
+                            echo "Step 6: Verify cleanup..."
                             echo "Active containers:"
                             docker ps -a --filter "name=startup" --format "table {{.Names}}\t{{.State}}" || echo "  (none)"
                             echo ""
                             echo "Active networks:"
                             docker network ls --filter "name=startup" --format "table {{.Name}}\t{{.Driver}}" || echo "  (none)"
                             echo ""
-                            echo "✓ Cleanup complete"
+                            echo "✓ Cleanup complete - data volumes preserved"
                             echo ""
                         '''
 
@@ -443,6 +447,21 @@ ENVEOF
                             else
                               echo "✗ Neo4j health check failed"
                               exit 1
+                            fi
+                        '''
+
+                        // Seed database if empty
+                        sh '''
+                            echo ""
+                            echo "Checking if database needs initialization..."
+                            NODE_COUNT=$(docker exec neo4j cypher-shell -u neo4j -p password123 "MATCH (n) RETURN count(n) as count;" 2>/dev/null | grep -oE '[0-9]+' | tail -1 || echo "0")
+                            
+                            if [ "$NODE_COUNT" == "0" ] || [ -z "$NODE_COUNT" ]; then
+                              echo "✓ Database is empty - initializing with seed data..."
+                              docker exec startup-analytics-backend-1 python -c "from backend.seed_data import run_seed; result = run_seed(skip_if_initialized=True); print(f'Seed result: {result}')" || echo "Warning: Seed execution completed"
+                              echo "✓ Database initialization complete"
+                            else
+                              echo "✓ Database already contains $NODE_COUNT nodes - skipping seed"
                             fi
                         '''
 
