@@ -256,7 +256,7 @@ ENVEOF
                             echo "✓ Public images pulled"
                             echo ""
                             echo "Step 2: Build local backend and frontend images with latest code..."
-                            docker-compose build --no-cache backend frontend
+                            docker-compose build backend frontend
                             echo "✓ Local images built"
                             echo ""
                             echo "Step 3: Start Docker services with fresh state..."
