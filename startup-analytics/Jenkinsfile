@@ -47,6 +47,41 @@ pipeline {
             }
         }
 
+        stage('Workspace Audit') {
+            steps {
+                script {
+                    echo "═══════════════════════════════════════════════════════════"
+                    echo "STAGE: Workspace Audit (DEBUG)"
+                    echo "═══════════════════════════════════════════════════════════"
+                }
+                sh '''
+                    echo "=== Current Working Directory ==="
+                    pwd
+                    echo ""
+                    echo "=== Root Directory Listing ==="
+                    ls -la
+                    echo ""
+                    echo "=== Finding requirements.txt ==="
+                    find . -name requirements.txt -type f
+                    echo ""
+                    echo "=== Finding Dockerfiles ==="
+                    find . -name Dockerfile -type f
+                    echo ""
+                    echo "=== Finding docker-compose.yml ==="
+                    find . -name docker-compose.yml -type f
+                    echo ""
+                    echo "=== Full Directory Tree ==="
+                    find . -type d | sort
+                    echo ""
+                    echo "=== Startup Analytics Contents ==="
+                    ls -la startup-analytics/ || echo "startup-analytics not found"
+                    echo ""
+                    echo "=== Backend Contents ==="
+                    ls -la startup-analytics/backend/ || echo "startup-analytics/backend not found"
+                '''
+            }
+        }
+
         stage('Backend Validation') {
             steps {
                 script {
@@ -57,7 +92,6 @@ pipeline {
                 dir("${WORKSPACE_DIR}") {
                     script {
                         echo "Running backend validation inside Python Docker image..."
-                        pip install -r requirements.txt
                         sh '''
                             docker run --rm \
                               -v "${PWD}:/workspace" \
