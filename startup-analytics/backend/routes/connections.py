@@ -88,7 +88,7 @@ async def get_connections(
       message: r.message,
       proposed_amount: r.proposed_amount
     } AS connection
-    ORDER BY investor_name ASC
+    ORDER BY i.name ASC
     """
     with get_session() as session:
         items = [record.data()["connection"] for record in session.run(query, startup_id=startup_id)]

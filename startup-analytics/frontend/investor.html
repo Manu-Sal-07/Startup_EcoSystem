@@ -3,139 +3,401 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Investor Workspace</title>
-  <link rel="stylesheet" href="/frontend/common.css">
+  <title>Investor Workspace — Deal Room</title>
+  <link rel="stylesheet" href="/frontend/investor-premium.css">
+  <!-- Feather Icons for professional UI iconography -->
+  <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-  <div class="workspace-shell">
-    <section class="hero workspace-header reveal">
-      <div class="workspace-top">
-        <div class="headline-stack">
-          <div class="badge">Investor Deal Room</div>
-          <h1 id="workspaceTitle">Investor Workspace</h1>
-          <p>Discover promising startups, review your fit scores, track wallet deployment, and move capital into live rounds from a cleaner deal-focused interface.</p>
-        </div>
-        <div class="workspace-actions">
-          <span id="apiHealthBadge" class="badge">Checking backend</span>
-          <button id="themeToggleButton" class="theme-toggle" type="button">Switch to Dark</button>
-          <button id="refreshWorkspaceButton" class="ghost" type="button">Refresh</button>
-          <button id="logoutButton" class="secondary" type="button">Logout</button>
-        </div>
+  <div class="app-layout">
+    <!-- Sidebar Backdrop for Mobile -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Permanent Left Navigation Sidebar -->
+    <aside class="sp-sidebar" id="sidebar">
+      <div class="sp-sidebar__brand">
+        <div class="sp-sidebar__logo">V</div>
+        <span class="sp-sidebar__title">Venture Deal Room</span>
       </div>
+      <nav class="sp-sidebar__nav">
+        <button class="sp-nav-item active" data-page="home" id="nav-home">
+          <i data-feather="home"></i>
+          <span>Home</span>
+        </button>
+        <button class="sp-nav-item" data-page="discovery" id="nav-discovery">
+          <i data-feather="search"></i>
+          <span>Startup Discovery</span>
+        </button>
+        <button class="sp-nav-item" data-page="recommended" id="nav-recommended">
+          <i data-feather="star"></i>
+          <span>Recommended</span>
+        </button>
+        <button class="sp-nav-item" data-page="portfolio" id="nav-portfolio">
+          <i data-feather="briefcase"></i>
+          <span>Portfolio</span>
+        </button>
+        <button class="sp-nav-item" data-page="connections" id="nav-connections">
+          <i data-feather="users"></i>
+          <span>Connections</span>
+        </button>
+        <button class="sp-nav-item" data-page="messages" id="nav-messages">
+          <i data-feather="mail"></i>
+          <span>Messages</span>
+        </button>
+        <button class="sp-nav-item" data-page="analytics" id="nav-analytics">
+          <i data-feather="bar-chart-2"></i>
+          <span>Analytics</span>
+        </button>
+        <button class="sp-nav-item" data-page="settings" id="nav-settings">
+          <i data-feather="settings"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+      <div class="sp-sidebar__footer">
+        <div>Ecosystem Version 2.0</div>
+        <div style="opacity: 0.6">Role: Investor</div>
+      </div>
+    </aside>
 
-      <div class="workspace-summary">
-        <div class="workspace-hero-panel">
-          <div class="pill-row">
-            <span id="signedInLine" class="badge">Signed in</span>
-            <span id="investorFeedSource" class="badge">Feed loading</span>
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="top-bar">
+        <div class="top-bar__left">
+          <button class="menu-toggle-btn" id="menuToggleButton">
+            <i data-feather="menu"></i>
+          </button>
+          <div class="top-bar__search">
+            <i data-feather="search"></i>
+            <input type="text" placeholder="Global search portfolio or startups..." id="globalSearchInput">
           </div>
-          <div id="workspaceHint" class="workspace-caption">Investor actions live on this page.</div>
-          <div class="hero-metrics">
-            <div class="metric-card">
-              <div class="metric-label">Wallet Balance</div>
-              <div id="investorWalletSummary" class="metric-value">INR 0</div>
-              <div class="metric-sub">Available capital for new transfers.</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Live Matches</div>
-              <div id="investorMatchCount" class="metric-value">0</div>
-              <div class="metric-sub">Startups aligned to your thesis and ticket band.</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Transfers Completed</div>
-              <div id="investorTransferCount" class="metric-value">0</div>
-              <div class="metric-sub">Successful wallet transfers logged in the graph.</div>
+        </div>
+        <div class="top-bar__right">
+          <!-- Wallet Summary -->
+          <div class="top-bar__wallet" id="topBarWallet">
+            <i data-feather="credit-card"></i>
+            <span id="investorWalletSummary">INR 0</span>
+          </div>
+          <!-- Action Buttons -->
+          <div class="top-bar__actions">
+            <span id="apiHealthBadge" class="sp-badge sp-badge--yellow">Checking API</span>
+            <button id="themeToggleButton" class="sp-btn sp-btn--secondary sp-btn--sm" title="Toggle Theme">
+              <i data-feather="sun"></i>
+            </button>
+            <button id="refreshWorkspaceButton" class="sp-btn sp-btn--secondary sp-btn--sm" title="Refresh Page">
+              <i data-feather="refresh-cw"></i>
+            </button>
+            <button id="logoutButton" class="sp-btn sp-btn--secondary sp-btn--sm" title="Logout">
+              <i data-feather="log-out"></i>
+            </button>
+          </div>
+          <!-- User Details / Avatar -->
+          <div class="top-bar__user">
+            <div class="top-bar__avatar" id="userAvatar">I</div>
+            <div style="text-align: left; display: none; flex-direction: column;" id="topBarUser">
+              <strong style="font-size:0.8rem" id="topBarUserName">Investor</strong>
+              <span style="font-size:0.7rem; color:var(--text-sec)" id="topBarUserFirm">Firm</span>
             </div>
           </div>
         </div>
+      </header>
 
-        <aside class="workspace-health-panel">
-          <div class="metric-label">Deal Operations</div>
-          <div class="metric-value" style="font-size:1.25rem">Funding + Matching</div>
-          <div class="metric-sub">This workspace combines cached feed browsing, graph-based fit scoring, and lock-protected fund transfers.</div>
-          <div id="apiHealthLine" class="panel-note" style="margin-top:14px">Checking backend health...</div>
-        </aside>
+      <!-- Page Containers -->
+      <div class="page-container">
+
+        <!-- PAGE 1: Home Command Center -->
+        <section class="sp-page active" id="page-home">
+          <div>
+            <h1 class="sp-h1">🏠 Deal Room Command Center</h1>
+            <p class="sp-sub" id="signedInLine">Venture ecosystem pipeline, wallet deployments, and match recommendations</p>
+          </div>
+
+          <!-- Quick Metrics Grid -->
+          <div class="sp-grid-4">
+            <div class="sp-card">
+              <div class="sp-sub">Portfolio Startups</div>
+              <div class="sp-h1" style="margin-top:8px" id="metricPortfolioCount">0</div>
+              <div class="sp-sub" style="margin-top:4px">Funded companies</div>
+            </div>
+            <div class="sp-card">
+              <div class="sp-sub">Outbound Proposals</div>
+              <div class="sp-h1" style="margin-top:8px" id="metricPendingCount">0</div>
+              <div class="sp-sub" style="margin-top:4px">Pending interest requests</div>
+            </div>
+            <div class="sp-card">
+              <div class="sp-sub">Neo4j Match Count</div>
+              <div class="sp-h1" style="margin-top:8px" id="metricMatchesCount">0</div>
+              <div class="sp-sub" style="margin-top:4px">Aligned matches</div>
+            </div>
+            <div class="sp-card">
+              <div class="sp-sub">Capital Deployed</div>
+              <div class="sp-h1" style="margin-top:8px" id="metricDeployedAmount">INR 0</div>
+              <div class="sp-sub" style="margin-top:4px">Total funding commitments</div>
+            </div>
+          </div>
+
+          <!-- Main Dashboard Grid -->
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div style="display:flex;justify-content:between;align-items:center;margin-bottom:16px">
+                <h3 class="sp-h3">Portfolio History & Activity</h3>
+              </div>
+              <div id="homePortfolioSummary" style="display:flex;flex-direction:column;gap:12px"></div>
+            </div>
+            <div class="sp-card">
+              <div style="display:flex;justify-content:between;align-items:center;margin-bottom:16px">
+                <h3 class="sp-h3">Recommended Deal Queue</h3>
+              </div>
+              <div id="homeMatchesWidget" style="display:flex;flex-direction:column;gap:12px"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 2: Startup Discovery -->
+        <section class="sp-page" id="page-discovery">
+          <div>
+            <h1 class="sp-h1">🔍 Startup Discovery Directory</h1>
+            <p class="sp-sub">Search and filter active startup rounds in the database</p>
+          </div>
+
+          <div class="discovery-layout">
+            <!-- Sidebar Filters -->
+            <aside class="sp-card discovery-filters">
+              <h3 class="sp-h3" style="margin-bottom:8px">Filter Startups</h3>
+              <div class="discovery-filter-group">
+                <label for="discoverySearch">Search</label>
+                <input type="text" class="sp-input" id="discoverySearch" placeholder="Search startup name...">
+              </div>
+              <div class="discovery-filter-group">
+                <label for="discoverySector">Sector</label>
+                <select class="sp-input" id="discoverySector">
+                  <option value="">All Sectors</option>
+                  <option value="SaaS">SaaS</option>
+                  <option value="FinTech">FinTech</option>
+                  <option value="HealthTech">HealthTech</option>
+                  <option value="AI">AI</option>
+                  <option value="CleanTech">CleanTech</option>
+                  <option value="EdTech">EdTech</option>
+                </select>
+              </div>
+              <div class="discovery-filter-group">
+                <label for="discoveryStage">Stage</label>
+                <select class="sp-input" id="discoveryStage">
+                  <option value="">All Stages</option>
+                  <option value="Seed">Seed</option>
+                  <option value="Pre-Series A">Pre-Series A</option>
+                  <option value="Series A">Series A</option>
+                  <option value="Series B">Series B</option>
+                </select>
+              </div>
+              <div class="discovery-filter-group">
+                <label for="discoveryMinAsk">Min Funding Ask</label>
+                <input type="number" class="sp-input" id="discoveryMinAsk" placeholder="INR Min">
+              </div>
+              <div class="discovery-filter-group">
+                <label for="discoveryMaxAsk">Max Funding Ask</label>
+                <input type="number" class="sp-input" id="discoveryMaxAsk" placeholder="INR Max">
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="sp-btn sp-btn--primary sp-btn--sm" id="discoveryApplyBtn" style="flex:1">Apply</button>
+                <button class="sp-btn sp-btn--secondary sp-btn--sm" id="discoveryResetBtn">Reset</button>
+              </div>
+            </aside>
+
+            <!-- Startup Feed Cards Column -->
+            <div style="display:flex;flex-direction:column;gap:20px" id="discoveryFeedList">
+              <!-- Cards dynamically rendered -->
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 3: Recommended Startups -->
+        <section class="sp-page" id="page-recommended">
+          <div>
+            <h1 class="sp-h1">⭐ Recommended Deal Matcher</h1>
+            <p class="sp-sub">Neo4j graph matching engine fit score recommendations</p>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:20px" id="recommendedMatchesList">
+            <!-- Dynamic Match Cards -->
+          </div>
+        </section>
+
+        <!-- PAGE 4: Portfolio -->
+        <section class="sp-page" id="page-portfolio">
+          <div>
+            <h1 class="sp-h1">💼 Venture Portfolio Tracker</h1>
+            <p class="sp-sub">Your funded assets, capital allocations, and round statuses</p>
+          </div>
+
+          <div class="sp-card">
+            <h3 class="sp-h3" style="margin-bottom:16px">Funded Startups & Transactions</h3>
+            <div id="portfolioList" style="display:flex;flex-direction:column;gap:14px">
+              <!-- Portfolio table/list -->
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 5: Connection Requests CRM -->
+        <section class="sp-page" id="page-connections">
+          <div>
+            <h1 class="sp-h1">🤝 Outgoing Proposal Pipeline</h1>
+            <p class="sp-sub">CRM queue tracking your interest requests and deal terms</p>
+          </div>
+
+          <div class="sp-card" style="padding:0">
+            <div class="crm-tabs" id="connectionsTabs">
+              <button class="crm-tab active" data-tab="pending">Pending Proposals</button>
+              <button class="crm-tab" data-tab="accepted">Accepted Proposals</button>
+              <button class="crm-tab" data-tab="rejected">Rejected Proposals</button>
+            </div>
+            <div style="padding:24px;display:flex;flex-direction:column;gap:14px" id="connectionsCRMList">
+              <!-- CRM Cards rendered here -->
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 6: Messages -->
+        <section class="sp-page" id="page-messages">
+          <div>
+            <h1 class="sp-h1">📨 Deal Room Messages</h1>
+            <p class="sp-sub">Communicate terms and lock details directly with startup founders</p>
+          </div>
+
+          <div class="messaging-layout">
+            <!-- Left panel: Conversation List -->
+            <div class="conversation-pane">
+              <div class="conversation-pane__head">
+                <strong style="font-size:0.85rem">Active Chats</strong>
+              </div>
+              <div class="conversation-pane__list" id="conversationList">
+                <!-- Conversation items -->
+              </div>
+            </div>
+
+            <!-- Right panel: Chat Window -->
+            <div class="chat-pane">
+              <div class="chat-pane__head">
+                <div>
+                  <h4 class="sp-h3" id="chatHeaderName">Select a conversation</h4>
+                  <span class="sp-sub" id="chatHeaderSector">to start messaging</span>
+                </div>
+              </div>
+              <div class="chat-pane__messages" id="chatMessagesList">
+                <div class="sp-empty">
+                  <i data-feather="message-square" style="width:32px;height:32px;color:var(--text-sec);margin-bottom:8px"></i>
+                  <p>Choose a deal room channel from the left pane.</p>
+                </div>
+              </div>
+              <div class="chat-pane__footer" style="display:none" id="chatInputArea">
+                <div style="display:flex;gap:10px">
+                  <input type="text" class="sp-input" placeholder="Type a message to founder..." id="chatMessageInput">
+                  <button class="sp-btn sp-btn--primary" id="chatSendMessageBtn">Send</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 7: Analytics -->
+        <section class="sp-page" id="page-analytics">
+          <div>
+            <h1 class="sp-h1">📊 Portfolio Analytics</h1>
+            <p class="sp-sub">Sector allocations, ticket range distributions, and deal funnel metrics</p>
+          </div>
+
+          <div class="sp-grid-2">
+            <!-- Sector Allocation -->
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom:16px">Sector Focus Allocation</h3>
+              <div id="analyticsSectorAllocation" style="display:flex;flex-direction:column;gap:16px">
+                <!-- Progress bars representing allocations -->
+              </div>
+            </div>
+
+            <!-- Deployment Stats -->
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom:16px">Deployment & Deal Funnel</h3>
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="sp-field">
+                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600">
+                    <span>Wallet Capital Deployed</span>
+                    <span id="analyticsWalletUsage">0%</span>
+                  </div>
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="analyticsWalletUsageBar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+                  <div style="background:var(--bg);padding:14px;border-radius:var(--r-inner);text-align:center">
+                    <div class="sp-sub">Match Conversion</div>
+                    <div class="sp-h2" style="margin-top:4px">45.2%</div>
+                  </div>
+                  <div style="background:var(--bg);padding:14px;border-radius:var(--r-inner);text-align:center">
+                    <div class="sp-sub">Avg Ticket Size</div>
+                    <div class="sp-h2" style="margin-top:4px" id="analyticsAvgTicket">INR 0</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 8: Settings -->
+        <section class="sp-page" id="page-settings">
+          <div>
+            <h1 class="sp-h1">⚙ Firm Preferences & Settings</h1>
+            <p class="sp-sub">Edit firm thesis, check system metadata, and configure wallet bounds</p>
+          </div>
+
+          <div class="sp-card">
+            <h3 class="sp-h3" style="margin-bottom:20px">Investment Thesis Settings</h3>
+            <form id="investorSettingsForm" style="display:flex;flex-direction:column;gap:16px">
+              <div class="sp-grid-2">
+                <div class="sp-field">
+                  <label for="settingsName">Investor/Firm Name</label>
+                  <input type="text" class="sp-input" id="settingsName" required>
+                </div>
+                <div class="sp-field">
+                  <label for="settingsFirm">VC Firm Association</label>
+                  <input type="text" class="sp-input" id="settingsFirm">
+                </div>
+              </div>
+
+              <div class="sp-grid-2">
+                <div class="sp-field">
+                  <label for="settingsTicketMin">Minimum Ticket Size (INR)</label>
+                  <input type="number" class="sp-input" id="settingsTicketMin" required>
+                </div>
+                <div class="sp-field">
+                  <label for="settingsTicketMax">Maximum Ticket Size (INR)</label>
+                  <input type="number" class="sp-input" id="settingsTicketMax" required>
+                </div>
+              </div>
+
+              <div class="sp-field">
+                <label for="settingsBio">Investment Bio & Thesis Statement</label>
+                <textarea class="sp-input" id="settingsBio" rows="4" placeholder="Detail your investment thesis here..."></textarea>
+              </div>
+
+              <div style="display:flex;justify-content:flex-end">
+                <button type="submit" class="sp-btn sp-btn--primary" id="settingsSaveBtn">
+                  <i data-feather="check"></i>
+                  <span>Save Profile</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
       </div>
-    </section>
-
-    <main class="workspace-grid">
-      <section class="workspace-row reveal">
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>Investor Profile</h2>
-              <p>Your firm details, thesis, and wallet position from the live backend profile.</p>
-            </div>
-          </div>
-          <div id="investorProfileView" class="empty-state">Loading investor profile...</div>
-        </article>
-
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>Deal Filters</h2>
-              <p>Refine the startup feed by sector, stage, and funding demand before moving capital.</p>
-            </div>
-          </div>
-          <form id="feedFilterForm" class="stack-lg">
-            <div class="form-grid">
-              <label>Sector
-                <select name="sector">
-                  <option value="">All sectors</option>
-                </select>
-              </label>
-              <label>Stage
-                <select name="stage">
-                  <option value="">All stages</option>
-                </select>
-              </label>
-              <label>Minimum Ask<input name="min_ask" type="number" min="0" step="1000"></label>
-              <label>Maximum Ask<input name="max_ask" type="number" min="0" step="1000"></label>
-            </div>
-            <div class="action-row">
-              <button class="primary" type="submit">Load Startup Feed</button>
-              <button id="resetFeedButton" class="ghost" type="button">Reset</button>
-            </div>
-          </form>
-        </article>
-      </section>
-
-      <section class="workspace-row reveal">
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>Startup Feed</h2>
-              <p>Each opportunity shows thesis-relevant metadata, round status, and transfer controls.</p>
-            </div>
-          </div>
-          <div id="startupFeedList" class="list-tight"></div>
-        </article>
-
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>My Match Queue</h2>
-              <p>Startups scored against your strategy, backed by graph signals and recent momentum.</p>
-            </div>
-          </div>
-          <div id="investorMatchesList" class="list-tight"></div>
-        </article>
-      </section>
-
-      <section class="reveal">
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>Funding History</h2>
-              <p>Completed transfers from your wallet, useful for review during demos and evaluations.</p>
-            </div>
-          </div>
-          <div id="fundHistoryList" class="list-tight"></div>
-        </article>
-      </section>
     </main>
   </div>
+
   <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
   <script src="/frontend/core.js"></script>
   <script src="/frontend/investor-page.js"></script>
   <script>initInvestorPage();</script>

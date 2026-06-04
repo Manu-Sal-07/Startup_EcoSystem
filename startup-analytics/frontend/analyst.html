@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Analyst Workspace</title>
   <link rel="stylesheet" href="/frontend/common.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="/frontend/chart.js"></script>
+  <script src="/frontend/d3.v7.min.js"></script>
 </head>
 <body>
   <div class="shell">
@@ -234,6 +234,7 @@
         <div class="graph-shell" style="margin-top:14px">
           <svg id="networkGraph" viewBox="0 0 960 470" preserveAspectRatio="xMidYMid meet"></svg>
           <div id="graphTip" class="graph-tip"></div>
+          <div id="graphNotice" style="text-align:center;color:var(--text-sec);font-size:0.9rem;margin-top:16px">Loading network graph…</div>
         </div>
       </article>
 

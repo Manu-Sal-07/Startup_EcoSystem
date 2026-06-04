@@ -5,7 +5,7 @@
     const state = { role: null, userId: null, userName: null, sectorChart: null };
     const $ = (selector) => document.querySelector(selector);
     const money = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(value || 0));
-    const esc = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+    const graphEscapeHandler = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
     function showToast(message, type = "success") {
       const toast = $("#toast");
@@ -105,15 +105,15 @@
       }
       target.innerHTML = `
         <div class="profile-grid">
-          <div class="profile-cell"><strong>Name</strong>${esc(profile.name)}</div>
-          <div class="profile-cell"><strong>Sector</strong>${esc(profile.sector)}</div>
-          <div class="profile-cell"><strong>Stage</strong>${esc(profile.stage)}</div>
+          <div class="profile-cell"><strong>Name</strong>${graphEscapeHandler(profile.name)}</div>
+          <div class="profile-cell"><strong>Sector</strong>${graphEscapeHandler(profile.sector)}</div>
+          <div class="profile-cell"><strong>Stage</strong>${graphEscapeHandler(profile.stage)}</div>
           <div class="profile-cell"><strong>Funding Ask</strong>${money(profile.funding_ask)}</div>
           <div class="profile-cell"><strong>Received Funding</strong>${money(profile.received_funding)}</div>
           <div class="profile-cell"><strong>Equity Offered</strong>${Number(profile.equity_offered || 0)}%</div>
           <div class="profile-cell"><strong>Revenue</strong>${money(profile.revenue)}</div>
-          <div class="profile-cell"><strong>Founded</strong>${esc(profile.founded || "-")}</div>
-          <div class="profile-cell" style="grid-column:1 / -1"><strong>Pitch</strong>${esc(profile.pitch || "No pitch available.")}</div>
+          <div class="profile-cell"><strong>Founded</strong>${graphEscapeHandler(profile.founded || "-")}</div>
+          <div class="profile-cell" style="grid-column:1 / -1"><strong>Pitch</strong>${graphEscapeHandler(profile.pitch || "No pitch available.")}</div>
         </div>`;
     }
 
@@ -125,15 +125,15 @@
       }
       target.innerHTML = `
         <div class="profile-grid">
-          <div class="profile-cell"><strong>Name</strong>${esc(profile.name)}</div>
-          <div class="profile-cell"><strong>Firm</strong>${esc(profile.firm || "Independent")}</div>
-          <div class="profile-cell"><strong>Type</strong>${esc(profile.type || "-")}</div>
+          <div class="profile-cell"><strong>Name</strong>${graphEscapeHandler(profile.name)}</div>
+          <div class="profile-cell"><strong>Firm</strong>${graphEscapeHandler(profile.firm || "Independent")}</div>
+          <div class="profile-cell"><strong>Type</strong>${graphEscapeHandler(profile.type || "-")}</div>
           <div class="profile-cell"><strong>Wallet Balance</strong>${money(profile.wallet_balance)}</div>
           <div class="profile-cell"><strong>Ticket Min</strong>${money(profile.ticket_min)}</div>
           <div class="profile-cell"><strong>Ticket Max</strong>${money(profile.ticket_max)}</div>
-          <div class="profile-cell"><strong>Preferred Sectors</strong>${esc((profile.preferred_sectors || []).join(", ") || "-")}</div>
-          <div class="profile-cell"><strong>Stage Focus</strong>${esc((profile.stage_focus || []).join(", ") || "-")}</div>
-          <div class="profile-cell" style="grid-column:1 / -1"><strong>Bio</strong>${esc(profile.bio || "No bio available.")}</div>
+          <div class="profile-cell"><strong>Preferred Sectors</strong>${graphEscapeHandler((profile.preferred_sectors || []).join(", ") || "-")}</div>
+          <div class="profile-cell"><strong>Stage Focus</strong>${graphEscapeHandler((profile.stage_focus || []).join(", ") || "-")}</div>
+          <div class="profile-cell" style="grid-column:1 / -1"><strong>Bio</strong>${graphEscapeHandler(profile.bio || "No bio available.")}</div>
         </div>`;
     }
 
@@ -147,14 +147,14 @@
         <div class="achievement-item">
           <div class="achievement-head">
             <div>
-              <span class="type-tag ${typeClass(item.type)}">${esc(item.type)}</span>
-              <h3 style="margin-top:10px">${esc(item.title)}</h3>
+              <span class="type-tag ${typeClass(item.type)}">${graphEscapeHandler(item.type)}</span>
+              <h3 style="margin-top:10px">${graphEscapeHandler(item.title)}</h3>
               <div class="meta">${formatDate(item.date)} ${item.verified ? '<span style="color:var(--good);font-weight:700">Verified</span>' : ""}</div>
             </div>
             ${item.value ? `<span class="badge">${money(item.value)}</span>` : ""}
           </div>
-          <div>${esc(item.description || "No description provided.")}</div>
-          ${item.media_url ? `<div class="meta"><a href="${esc(item.media_url)}" target="_blank" rel="noopener">Open supporting link</a></div>` : ""}
+          <div>${graphEscapeHandler(item.description || "No description provided.")}</div>
+          ${item.media_url ? `<div class="meta"><a href="${graphEscapeHandler(item.media_url)}" target="_blank" rel="noopener">Open supporting link</a></div>` : ""}
         </div>`).join("");
     }
 
@@ -163,7 +163,7 @@
       const entries = Object.entries(viewers || {});
       target.innerHTML = !entries.length ? '<div class="empty">No startup viewers yet.</div>' : entries.map(([investorId, ts]) => `
         <div class="history-card">
-          <strong>${esc(investorId)}</strong>
+          <strong>${graphEscapeHandler(investorId)}</strong>
           <div class="meta">Viewed at ${formatDate(ts)}</div>
         </div>`).join("");
     }
@@ -173,12 +173,12 @@
       target.innerHTML = !items || !items.length ? '<div class="empty">No connection requests yet.</div>' : items.map((item) => `
         <div class="history-card">
           <div class="inline" style="justify-content:space-between">
-            <strong>${esc(item.investor_name || item.investor_id)}</strong>
-            <span class="badge ${item.status === "accepted" ? "good" : item.status === "rejected" ? "warn" : ""}">${esc(item.status)}</span>
+            <strong>${graphEscapeHandler(item.investor_name || item.investor_id)}</strong>
+            <span class="badge ${item.status === "accepted" ? "good" : item.status === "rejected" ? "warn" : ""}">${graphEscapeHandler(item.status)}</span>
           </div>
-          <div class="meta">Investor ID: ${esc(item.investor_id)}</div>
+          <div class="meta">Investor ID: ${graphEscapeHandler(item.investor_id)}</div>
           <div class="meta">Proposed amount: ${money(item.proposed_amount)}</div>
-          <div style="margin-top:8px">${esc(item.message || "No message provided.")}</div>
+          <div style="margin-top:8px">${graphEscapeHandler(item.message || "No message provided.")}</div>
         </div>`).join("");
     }
 
@@ -188,8 +188,8 @@
         <div class="match-card">
           <div class="inline" style="justify-content:space-between">
             <div>
-              <h3>${esc(match.name)}</h3>
-              <div class="meta">${mode === "investor" ? `${esc(match.sector)} / ${esc(match.stage)}` : `${esc(match.firm || "Independent")} / ${esc(match.type || "Investor")}`}</div>
+              <h3>${graphEscapeHandler(match.name)}</h3>
+              <div class="meta">${mode === "investor" ? `${graphEscapeHandler(match.sector)} / ${graphEscapeHandler(match.stage)}` : `${graphEscapeHandler(match.firm || "Independent")} / ${graphEscapeHandler(match.type || "Investor")}`}</div>
             </div>
             <span class="badge good">${match.total_score}/110</span>
           </div>
@@ -203,11 +203,11 @@
       target.innerHTML = !items || !items.length ? '<div class="empty">No fund transfers recorded yet.</div>' : items.map((item) => `
         <div class="history-card">
           <div class="inline" style="justify-content:space-between">
-            <strong>${esc(item.startup)}</strong>
+            <strong>${graphEscapeHandler(item.startup)}</strong>
             <span class="badge good">${money(item.amount)}</span>
           </div>
-          <div class="meta">${esc(item.sector)} | ${esc(item.round || "direct-transfer")}</div>
-          <div class="meta">${formatDate(item.transferred_at)} | ${esc(item.status)}</div>
+          <div class="meta">${graphEscapeHandler(item.sector)} | ${graphEscapeHandler(item.round || "direct-transfer")}</div>
+          <div class="meta">${formatDate(item.transferred_at)} | ${graphEscapeHandler(item.status)}</div>
         </div>`).join("");
     }
 
@@ -215,8 +215,8 @@
       $("#leaderboardList").innerHTML = !items || !items.length ? '<div class="empty">No leaderboard data available.</div>' : items.map((item, index) => `
         <div class="history-card">
           <div class="inline" style="justify-content:space-between">
-            <strong>#${index + 1} ${esc(item.investor_id)}</strong>
-            <span class="badge good">${esc(item.score)}</span>
+            <strong>#${index + 1} ${graphEscapeHandler(item.investor_id)}</strong>
+            <span class="badge good">${graphEscapeHandler(item.score)}</span>
           </div>
         </div>`).join("");
     }
@@ -224,8 +224,8 @@
     function renderHotSectors(items) {
       $("#hotSectorsList").innerHTML = !items || !items.length ? '<div class="empty">No hot sector activity found.</div>' : items.map((item) => `
         <div class="history-card">
-          <strong>${esc(item.sector)}</strong>
-          <div class="meta">${esc(item.interest_count)} recent interest events</div>
+          <strong>${graphEscapeHandler(item.sector)}</strong>
+          <div class="meta">${graphEscapeHandler(item.interest_count)} recent interest events</div>
         </div>`).join("");
     }
 
@@ -234,11 +234,11 @@
       $("#achievementLeaderList").innerHTML = !items || !items.length ? '<div class="empty">No achievement leader data available.</div>' : items.map((item, index) => `
         <div class="history-card">
           <div class="inline" style="justify-content:space-between">
-            <strong>#${index + 1} ${esc(item.name)}</strong>
-            <span class="badge">${esc(item.sector)}</span>
+            <strong>#${index + 1} ${graphEscapeHandler(item.name)}</strong>
+            <span class="badge">${graphEscapeHandler(item.sector)}</span>
           </div>
           <div class="mini-track" style="margin-top:10px"><div class="mini-fill" style="width:${(Number(item.ach_count || 0) / max) * 100}%"></div></div>
-          <div class="meta" style="margin-top:10px">${esc(item.ach_count)} achievements in the last 90 days</div>
+          <div class="meta" style="margin-top:10px">${graphEscapeHandler(item.ach_count)} achievements in the last 90 days</div>
         </div>`).join("");
     }
 
@@ -264,12 +264,12 @@
         <div class="feed-card" id="feedCard_${item.id}">
           <div class="inline" style="justify-content:space-between">
             <div>
-              <h3>${esc(item.name)}</h3>
-              <div class="meta">${esc(item.sector)} / ${esc(item.stage)}</div>
+              <h3>${graphEscapeHandler(item.name)}</h3>
+              <div class="meta">${graphEscapeHandler(item.sector)} / ${graphEscapeHandler(item.stage)}</div>
             </div>
             <span class="badge">${money(item.funding_ask)}</span>
           </div>
-          <div style="margin-top:10px">${esc(item.pitch || "No pitch provided.")}</div>
+          <div style="margin-top:10px">${graphEscapeHandler(item.pitch || "No pitch provided.")}</div>
           <div class="inline" style="margin-top:14px">
             <button class="ghost" type="button" data-action="view" data-startup-id="${item.id}">View Profile</button>
             <button class="secondary" type="button" data-action="interest" data-startup-id="${item.id}">Express Interest</button>
@@ -309,7 +309,7 @@
       const edgeColors = { INTERESTED_IN: "#f59e0b", CONNECTED_TO: "#16a34a", INVESTED_IN: "#2563eb", FOUNDED: "#64748b", COMPETES_WITH: "#c084fc", HAS_ACHIEVEMENT: "#b45309", FUNDED: "#0f766e" };
       const simulation = d3.forceSimulation(nodes).force("link", d3.forceLink(edges).id((item) => item.id).distance(100)).force("charge", d3.forceManyBody().strength(-280)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide().radius(22));
       const link = svg.append("g").selectAll("line").data(edges).join("line").attr("stroke", (item) => edgeColors[item.type] || "#94a3b8").attr("stroke-opacity", .72).attr("stroke-width", (item) => item.type === "INVESTED_IN" || item.type === "FUNDED" ? 2.8 : 1.8);
-      const node = svg.append("g").selectAll("circle").data(nodes).join("circle").attr("r", (item) => item.label === "Investor" ? 10 : item.label === "Achievement" ? 7 : 8).attr("fill", (item) => nodeColors[item.label] || "#334155").attr("stroke", "#fff").attr("stroke-width", 1.8).call(d3.drag().on("start", dragStarted).on("drag", dragged).on("end", dragEnded)).on("mousemove", (event, item) => { tip.style.opacity = "1"; tip.style.left = `${event.offsetX}px`; tip.style.top = `${event.offsetY}px`; tip.innerHTML = `<strong>${esc(item.name)}</strong><div>${esc(item.label)}</div><div>${esc(item.sector || "")}</div>`; }).on("mouseleave", () => { tip.style.opacity = "0"; });
+      const node = svg.append("g").selectAll("circle").data(nodes).join("circle").attr("r", (item) => item.label === "Investor" ? 10 : item.label === "Achievement" ? 7 : 8).attr("fill", (item) => nodeColors[item.label] || "#334155").attr("stroke", "#fff").attr("stroke-width", 1.8).call(d3.drag().on("start", dragStarted).on("drag", dragged).on("end", dragEnded)).on("mousemove", (event, item) => { tip.style.opacity = "1"; tip.style.left = `${event.offsetX}px`; tip.style.top = `${event.offsetY}px`; tip.innerHTML = `<strong>${graphEscapeHandler(item.name)}</strong><div>${graphEscapeHandler(item.label)}</div><div>${graphEscapeHandler(item.sector || "")}</div>`; }).on("mouseleave", () => { tip.style.opacity = "0"; });
       const labels = svg.append("g").selectAll("text").data(nodes.slice(0, 50)).join("text").text((item) => item.name).attr("font-size", 11).attr("fill", "#36454f").attr("dx", 12).attr("dy", 4);
       simulation.on("tick", () => { link.attr("x1", (item) => item.source.x).attr("y1", (item) => item.source.y).attr("x2", (item) => item.target.x).attr("y2", (item) => item.target.y); node.attr("cx", (item) => item.x).attr("cy", (item) => item.y); labels.attr("x", (item) => item.x).attr("y", (item) => item.y); });
       function dragStarted(event) { if (!event.active) simulation.alphaTarget(.3).restart(); event.subject.fx = event.subject.x; event.subject.fy = event.subject.y; }
@@ -428,7 +428,7 @@
         if (!lock || !progress) return;
         shell.innerHTML = fundingWidget(progress, lock, startupId);
       } catch (error) {
-        shell.innerHTML = `<div class="empty">${esc(error.detail || error.message || error)}</div>`;
+        shell.innerHTML = `<div class="empty">${graphEscapeHandler(error.detail || error.message || error)}</div>`;
       }
     }
 

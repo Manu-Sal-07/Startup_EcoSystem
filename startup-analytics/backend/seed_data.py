@@ -2,6 +2,7 @@ import random
 import re
 import sys
 from collections import defaultdict
+from datetime import date, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -108,7 +109,12 @@ FIRM_PREFIXES = [
     "Pioneer",
 ]
 FIRM_SUFFIXES = ["Ventures", "Capital", "Partners", "Holdings"]
-RECENT_ACHIEVEMENT_DATES = ["2026-01-12", "2026-02-08", "2026-03-05"]
+_today = date.today()
+RECENT_ACHIEVEMENT_DATES = [
+    (_today - timedelta(days=60)).isoformat(),
+    (_today - timedelta(days=30)).isoformat(),
+    (_today - timedelta(days=5)).isoformat(),
+]
 
 
 def _startup_name(index: int) -> str:
@@ -293,6 +299,17 @@ def generate_seed_payload(seed: int = 42) -> dict:
     for startup in startups:
         achievements.extend(_achievement_templates(startup))
 
+    interested_in = []
+    for _ in range(40):
+        investor = rng.choice(investors)
+        startup = rng.choice(startups)
+        interested_in.append({
+            "investor_id": investor["id"],
+            "startup_id": startup["id"],
+            "message": "Interested in learning more about your product.",
+            "proposed_amount": round(rng.uniform(investor["ticket_min"], investor["ticket_max"]), 2),
+        })
+
     return {
         "startups": startups,
         "investors": investors,
@@ -300,6 +317,7 @@ def generate_seed_payload(seed: int = 42) -> dict:
         "investments": investments,
         "competes_with": competes_with,
         "achievements": achievements,
+        "interested_in": interested_in,
         "analyst": {
             "id": "analyst_01",
             "email": "analyst@platform.com",
@@ -398,6 +416,21 @@ def run_seed(seed: int = 42) -> dict:
 
         session.run(
             """
+            UNWIND $interests AS interest
+            MATCH (i:Investor {id: interest.investor_id})
+            MATCH (s:Startup {id: interest.startup_id})
+            CREATE (i)-[:INTERESTED_IN {
+                message: interest.message,
+                proposed_amount: interest.proposed_amount,
+                status: 'pending',
+                date: datetime()
+            }]->(s)
+            """,
+            interests=payload["interested_in"],
+        ).consume()
+
+        session.run(
+            """
             UNWIND $relationships AS relationship
             MATCH (s1:Startup {id: relationship.startup_id})
             MATCH (s2:Startup {id: relationship.competitor_id})
@@ -470,6 +503,7 @@ def run_seed(seed: int = 42) -> dict:
         + len(payload["investments"])
         + len(payload["competes_with"])
         + len(payload["achievements"])
+        + len(payload["interested_in"])
     )
     print(f"Created {len(payload['achievements'])} achievements")
     return {

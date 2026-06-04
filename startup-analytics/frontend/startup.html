@@ -3,152 +3,503 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Startup Workspace</title>
-  <link rel="stylesheet" href="/frontend/common.css">
+  <title>Startup Workspace — Startup Ecosystem Platform</title>
+  <meta name="description" content="Professional startup workspace for managing investor relationships, milestones, and ecosystem analytics.">
+  <link rel="stylesheet" href="/frontend/startup-premium.css">
+  <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-  <div class="workspace-shell">
-    <section class="hero workspace-header reveal">
-      <div class="workspace-top">
-        <div class="headline-stack">
-          <div class="badge">Startup Command Center</div>
-          <h1 id="workspaceTitle">Startup Workspace</h1>
-          <p>Track your profile, publish milestones, monitor investor attention, and review your highest-conviction funding matches from one focused workspace.</p>
-        </div>
-        <div class="workspace-actions">
-          <span id="apiHealthBadge" class="badge">Checking backend</span>
-          <button id="themeToggleButton" class="theme-toggle" type="button">Switch to Dark</button>
-          <button id="refreshWorkspaceButton" class="ghost" type="button">Refresh</button>
-          <button id="logoutButton" class="secondary" type="button">Logout</button>
-        </div>
+
+  <!-- Mobile sidebar backdrop -->
+  <div class="sp-sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- Reusable AppLayout Grid -->
+  <div class="app-layout">
+
+    <!-- ═══ LEFT SIDEBAR COMPONENT ═══ -->
+    <aside class="sp-sidebar" id="sidebar">
+      <div class="sp-sidebar__brand">
+        <div class="sp-sidebar__brand-icon">S</div>
+        <span class="sp-sidebar__brand-text">Startup Space</span>
       </div>
 
-      <div class="workspace-summary">
-        <div class="workspace-hero-panel">
-          <div class="pill-row">
-            <span id="signedInLine" class="badge">Signed in</span>
-            <span id="startupProfileSource" class="badge">Profile loading</span>
-            <span id="achievementSource" class="badge">Timeline loading</span>
-          </div>
-          <div id="workspaceHint" class="workspace-caption">Startup-specific actions live here.</div>
-          <div class="hero-metrics">
-            <div class="metric-card">
-              <div class="metric-label">Achievements Posted</div>
-              <div id="startupAchievementCount" class="metric-value">0</div>
-              <div class="metric-sub">Verified and pending milestones on your timeline.</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Investor Viewers</div>
-              <div id="startupViewerCount" class="metric-value">0</div>
-              <div class="metric-sub">Unique investors who have opened your profile.</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Active Matches</div>
-              <div id="startupMatchCount" class="metric-value">0</div>
-              <div class="metric-sub">Live investor matches scored with graph context.</div>
-            </div>
+      <!-- Navigation Menu -->
+      <nav class="sp-sidebar__nav">
+        <div class="sp-sidebar__nav-label">Main</div>
+        <a href="#home" class="sp-nav-item active" data-page="home">
+          <i data-feather="home"></i><span>Home</span>
+        </a>
+        <a href="#profile" class="sp-nav-item" data-page="profile">
+          <i data-feather="briefcase"></i><span>Startup Profile</span>
+        </a>
+        <a href="#milestones" class="sp-nav-item" data-page="milestones">
+          <i data-feather="award"></i><span>Milestones</span>
+        </a>
+        <a href="#matches" class="sp-nav-item" data-page="matches">
+          <i data-feather="target"></i><span>Investor Matches</span>
+        </a>
+
+        <div class="sp-sidebar__nav-label">Engagement</div>
+        <a href="#viewers" class="sp-nav-item" data-page="viewers">
+          <i data-feather="eye"></i><span>Profile Viewers</span>
+        </a>
+        <a href="#connections" class="sp-nav-item" data-page="connections">
+          <i data-feather="users"></i><span>Connection Requests</span>
+        </a>
+        <a href="#analytics" class="sp-nav-item" data-page="analytics">
+          <i data-feather="bar-chart-2"></i><span>Analytics</span>
+        </a>
+
+        <div class="sp-sidebar__nav-label">System</div>
+        <a href="#settings" class="sp-nav-item" data-page="settings">
+          <i data-feather="settings"></i><span>Settings</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer (User Profile) -->
+      <div class="sp-sidebar__footer">
+        <div class="sp-sidebar__avatar" id="sidebarAvatar">SU</div>
+        <div>
+          <div class="sp-sidebar__user-name" id="sidebarUserName">Startup User</div>
+          <div class="sp-sidebar__user-role">Founder</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN PANEL CONTENT ═══ -->
+    <main class="sp-main">
+
+      <!-- ── Top Navbar Component ── -->
+      <header class="sp-topbar">
+        <div class="sp-topbar__left">
+          <!-- Mobile Sidebar Toggle -->
+          <button class="sp-topbar__hamburger" id="menuToggleBtn" aria-label="Toggle menu">
+            <i data-feather="menu"></i>
+          </button>
+          <!-- Search Bar -->
+          <div class="sp-search">
+            <i data-feather="search"></i>
+            <input type="text" id="globalSearchInput" placeholder="Search investors, sectors…">
           </div>
         </div>
+        <div class="sp-topbar__right">
+          <!-- Health Telemetry -->
+          <span id="apiHealthBadge" class="sp-health sp-health--ok">Checking…</span>
+          <!-- Notifications -->
+          <button class="sp-icon-btn" id="notificationsBtn" title="Notifications">
+            <i data-feather="bell"></i><span class="sp-icon-btn__dot"></span>
+          </button>
+          <!-- Theme Toggle -->
+          <button class="sp-btn sp-btn--ghost sp-btn--sm" id="themeToggleButton" title="Toggle Theme">
+            <i data-feather="moon" style="width:14px;height:14px"></i>
+          </button>
+          <!-- Refresh -->
+          <button class="sp-btn sp-btn--ghost sp-btn--sm" id="refreshWorkspaceButton" title="Refresh">
+            <i data-feather="refresh-cw" style="width:14px;height:14px"></i>
+          </button>
+          <!-- Logout Button -->
+          <button class="sp-btn sp-btn--danger sp-btn--sm" id="logoutButton">Logout</button>
+        </div>
+      </header>
 
-        <aside class="workspace-health-panel">
-          <div class="metric-label">Platform Link</div>
-          <div class="metric-value" style="font-size:1.25rem">FastAPI + Neo4j + Redis</div>
-          <div class="metric-sub">Your startup workspace is powered by graph-backed matching and cached activity insights.</div>
-          <div id="apiHealthLine" class="panel-note" style="margin-top:14px">Checking backend health...</div>
-        </aside>
-      </div>
-    </section>
+      <!-- ── Page Container Viewport ── -->
+      <div class="sp-viewport" id="pageViewport">
 
-    <main class="workspace-grid">
-      <section class="workspace-row reveal">
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>Startup Profile Snapshot</h2>
-              <p>Live operational profile pulled from Neo4j, including capital demand and traction indicators.</p>
+        <!-- Hidden elements for API core.js compatibility -->
+        <div style="display:none">
+          <span id="signedInLine"></span>
+          <span id="startupProfileSource"></span>
+          <span id="achievementSource"></span>
+          <span id="apiHealthLine"></span>
+          <h1 id="workspaceTitle"></h1>
+          <div id="workspaceHint"></div>
+        </div>
+
+        <!-- PAGE 1: Home Feed (Dynamic 3-Column Layout) -->
+        <section class="sp-page active" id="page-home">
+          <div class="home-grid">
+            
+            <!-- Left Column: Startup Summary Card & Action Buttons -->
+            <div class="home-col home-col--left">
+              <!-- StartupSummaryCard -->
+              <div id="startupSummaryCard"></div>
+              
+              <!-- Quick Stats Card -->
+              <div id="quickStatsCard"></div>
+            </div>
+
+            <!-- Center Column: Main Activity Feed & Post Milestone Bar -->
+            <div class="home-col home-col--center">
+              <!-- Top Feed Action: Large CTA -->
+              <div class="feed-top-bar">
+                <div class="feed-avatar-trigger" id="feedAvatar">SU</div>
+                <button class="feed-post-btn" id="feedPostBtn">+ Post New Milestone</button>
+              </div>
+
+              <!-- ActivityFeed Container -->
+              <div id="activityFeed">
+                <!-- Skeletons, Errors, Empty, and Live Activity Cards render here -->
+              </div>
+            </div>
+
+            <!-- Right Column: Suggested Investors, Trending Sectors, Readiness & Profile Strength -->
+            <div class="home-col home-col--right">
+              <!-- SuggestedInvestorCard -->
+              <div id="suggestedInvestorsCard"></div>
+
+              <!-- TrendingSectors -->
+              <div id="trendingSectorsCard"></div>
+
+              <!-- FundingReadinessCard -->
+              <div id="fundingReadinessCard"></div>
+
+              <!-- ProfileStrengthCard -->
+              <div id="profileStrengthCard"></div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- PAGE 2: Startup Profile (LinkedIn Company Page) -->
+        <section class="sp-page" id="page-profile">
+          
+          <!-- ProfileHeader Section -->
+          <div id="profileHeaderContainer"></div>
+          
+          <div class="profile-grid">
+            <!-- Left Column: About, Metrics, AchievementPreview -->
+            <div class="profile-col profile-col--main">
+              <!-- AboutSection -->
+              <div id="aboutSectionContainer"></div>
+              
+              <!-- MetricsSection -->
+              <div id="metricsSectionContainer"></div>
+              
+              <!-- AchievementPreview -->
+              <div id="achievementPreviewContainer"></div>
+            </div>
+
+            <!-- Right Column: InvestorInterestCard, ProfileCompletionCard, Viewers list & Quick Actions -->
+            <div class="profile-col profile-col--sidebar">
+              <div id="investorInterestCardContainer"></div>
+              <div id="profileCompletionCardContainer"></div>
+              <div id="recentViewersContainer"></div>
+              <div id="quickActionsContainer"></div>
             </div>
           </div>
-          <div id="startupProfileView" class="empty-state">Loading startup profile...</div>
-        </article>
 
-        <article class="section-card stack-lg">
-          <div class="section-header">
+        </section>
+
+        <!-- PAGE 3: Milestones (Chronological Timeline) -->
+        <section class="sp-page" id="page-milestones">
+          <div class="sp-page-header">
             <div>
-              <h2>Post New Achievement</h2>
-              <p>Publish milestones so investors and analysts can evaluate progress and momentum in real time.</p>
+              <h1 class="sp-h1">🏆 Milestones & Achievements</h1>
+              <p class="sp-sub">Chronological company execution achievements timeline</p>
+            </div>
+            <button class="sp-btn sp-btn--primary" id="milestonePageAddBtn">
+              <i data-feather="plus"></i>Add Milestone
+            </button>
+          </div>
+
+          <!-- Milestones filter + timeline layout -->
+          <div class="milestones-layout">
+            <div class="sp-card" style="padding: 16px; margin-bottom: 20px;">
+              <div class="milestone-filters" id="milestoneFiltersContainer" style="display:flex;gap:10px;flex-wrap:wrap">
+                <!-- Dynamically rendered category filter buttons -->
+              </div>
+            </div>
+            <div id="milestonesTimelineContainer"></div>
+          </div>
+        </section>
+
+        <!-- PAGE 4: Investor Matches -->
+        <section class="sp-page" id="page-matches">
+          <div class="sp-page-header">
+            <div>
+              <h1 class="sp-h1">🎯 Investor Matches</h1>
+              <p class="sp-sub">Ecosystem matching engine results and allocators workbench</p>
             </div>
           </div>
-          <form id="achievementForm" class="stack-lg">
-            <div class="form-grid">
-              <label>Type
-                <select name="type" required>
-                  <option value="revenue">Revenue</option>
-                  <option value="partnership">Partnership</option>
-                  <option value="product">Product</option>
-                  <option value="funding">Funding</option>
-                  <option value="team">Team</option>
-                  <option value="award">Award</option>
+
+          <div class="matches-layout">
+            <!-- Filters Sidebar -->
+            <aside class="matches-filter-panel">
+              <h3 class="sp-h3">Filters</h3>
+              <div class="matches-filter-group">
+                <label for="matchesSearchInput">Search</label>
+                <input class="sp-input" type="text" id="matchesSearchInput" placeholder="Investor or firm name...">
+              </div>
+              <div class="matches-filter-group">
+                <label for="matchesSectorFilter">Sector</label>
+                <select class="sp-input" id="matchesSectorFilter">
+                  <option value="all">All Sectors</option>
+                  <option value="AI/ML">AI/ML</option>
+                  <option value="FinTech">FinTech</option>
+                  <option value="HealthTech">HealthTech</option>
+                  <option value="SaaS">SaaS</option>
+                  <option value="CleanTech">CleanTech</option>
+                  <option value="EdTech">EdTech</option>
                 </select>
-              </label>
-              <label>Date<input name="date" type="date" required></label>
-              <label>Title<input name="title" required placeholder="Crossed INR 1 Crore ARR"></label>
-              <label>Value<input name="value" type="number" min="0" step="1" placeholder="Optional"></label>
-            </div>
-            <label>Description<textarea name="description" placeholder="Describe the milestone, outcome, or traction signal"></textarea></label>
-            <label>Media URL<input name="media_url" placeholder="Proof link, release, or external reference"></label>
-            <div class="action-row">
-              <button class="primary" type="submit">Post Achievement</button>
-              <div class="workspace-caption">New posts refresh your timeline and can improve your investor match quality.</div>
-            </div>
-          </form>
-        </article>
-      </section>
+              </div>
+              <div class="matches-filter-group">
+                <label for="matchesMinScore">Min Match Score</label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="matchesMinScore" min="50" max="100" value="50" style="flex:1">
+                  <span id="matchesMinScoreVal" style="font-weight:700;font-size:.85rem;min-width:30px">50</span>
+                </div>
+              </div>
+              <div class="matches-filter-group">
+                <label for="matchesSort">Sort By</label>
+                <select class="sp-input" id="matchesSort">
+                  <option value="score">Match Score (High-Low)</option>
+                  <option value="name">Name (A-Z)</option>
+                  <option value="ticket">Ticket Size (High-Low)</option>
+                </select>
+              </div>
+            </aside>
 
-      <section class="workspace-row equal reveal">
-        <article class="section-card stack-lg">
-          <div class="section-header">
-            <div>
-              <h2>Achievement Timeline</h2>
-              <p>Your latest traction story, ready for investor review.</p>
+            <!-- Matches List Column -->
+            <div class="matches-main">
+              <div class="matches-stats-bar">
+                <span id="matchesCountText">0 matches found</span>
+              </div>
+              <div id="matchesListContainer" style="display:flex;flex-direction:column;gap:20px"></div>
             </div>
           </div>
-          <div id="achievementTimeline" class="timeline-shell"></div>
-        </article>
+        </section>
 
-        <article class="section-card stack-lg">
-          <div class="section-header">
+        <!-- PAGE 5: Profile Viewers -->
+        <section class="sp-page" id="page-viewers">
+          <div class="sp-page-header">
             <div>
-              <h2>Investor Signals</h2>
-              <p>See who is paying attention and what connection requests need action.</p>
+              <h1 class="sp-h1">👀 Profile Viewers</h1>
+              <p class="sp-sub">Allocator traffic and profile view history audit trail</p>
             </div>
           </div>
-          <div class="split-grid">
-            <div>
-              <h3>Profile Viewers</h3>
-              <div id="startupViewersList" class="list-tight" style="margin-top:14px"></div>
-            </div>
-            <div>
-              <h3>Connection Requests</h3>
-              <div id="startupConnectionsList" class="list-tight" style="margin-top:14px"></div>
-            </div>
+          <div class="sp-card">
+            <h3 class="sp-h3" style="margin-bottom:16px">Who Viewed Your Profile</h3>
+            <div id="profileViewersListContainer" style="display:flex;flex-direction:column;gap:14px"></div>
           </div>
-        </article>
-      </section>
+        </section>
 
-      <section class="reveal">
-        <article class="section-card stack-lg">
-          <div class="section-header">
+        <!-- PAGE 6: Connection Requests & CRM -->
+        <section class="sp-page" id="page-connections">
+          <div class="sp-page-header">
             <div>
-              <h2>Best Investor Matches</h2>
-              <p>Prioritized investors scored across sector fit, ticket size, stage alignment, network proximity, and achievement momentum.</p>
+              <h1 class="sp-h1">🤝 Connection Requests</h1>
+              <p class="sp-sub">CRM pipeline for managing active investor proposals</p>
             </div>
           </div>
-          <div id="startupMatchesList" class="list-tight"></div>
-        </article>
-      </section>
+
+          <div class="sp-card" style="padding:0">
+            <div class="crm-tabs" style="display:flex;border-bottom:1px solid var(--border)" id="crmTabsContainer">
+              <button class="crm-tab active" data-tab="inbound" style="flex:1;padding:14px;background:none;border:none;border-bottom:2px solid var(--primary);font-weight:700;color:var(--primary);cursor:pointer">Inbound Proposals</button>
+              <button class="crm-tab" data-tab="outbound" style="flex:1;padding:14px;background:none;border:none;border-bottom:2px solid transparent;font-weight:600;color:var(--text-sec);cursor:pointer">Outbound Proposals</button>
+              <button class="crm-tab" data-tab="connections" style="flex:1;padding:14px;background:none;border:none;border-bottom:2px solid transparent;font-weight:600;color:var(--text-sec);cursor:pointer">Connections</button>
+            </div>
+            <div id="connectionsCrmContainer" style="padding:20px"></div>
+          </div>
+        </section>
+
+        <!-- PAGE 7: Analytics -->
+        <section class="sp-page" id="page-analytics">
+          <div class="sp-page-header">
+            <div>
+              <h1 class="sp-h1">📊 Workspace Analytics</h1>
+              <p class="sp-sub">Ecosystem metrics, traction analysis, and visual indicator boards</p>
+            </div>
+          </div>
+          
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom:16px">Traction Growth</h3>
+              <div id="analyticsTractionContainer"></div>
+            </div>
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom:16px">Visitor Trends</h3>
+              <div id="analyticsVisitorsContainer"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 8: Settings -->
+        <section class="sp-page" id="page-settings">
+          <div class="sp-page-header">
+            <div>
+              <h1 class="sp-h1">⚙ Settings</h1>
+              <p class="sp-sub">Workspace preferences and backend synchronization configurations</p>
+            </div>
+          </div>
+          
+          <div class="sp-card" style="max-width:600px">
+            <h3 class="sp-h3" style="margin-bottom:16px">Ecosystem API Sync</h3>
+            <p class="sp-sub" style="margin-bottom:20px">Configure default matching tolerances and local caching options.</p>
+            
+            <form id="settingsForm">
+              <div class="sp-field">
+                <label>Matching Affinity Threshold</label>
+                <input class="sp-input" type="number" min="1" max="100" value="70">
+              </div>
+              <div class="sp-field">
+                <label>Email Notifications</label>
+                <select class="sp-input">
+                  <option>Daily Summary</option>
+                  <option>Weekly Digest</option>
+                  <option>Immediate Alerts</option>
+                  <option>Disabled</option>
+                </select>
+              </div>
+              <button type="submit" class="sp-btn sp-btn--primary">Save Configuration</button>
+            </form>
+          </div>
+        </section>
+
+      </div>
     </main>
   </div>
+
+  <!-- ═══ MODAL: ADD MILESTONE ═══ -->
+  <div class="sp-modal-overlay" id="milestoneModal">
+    <div class="sp-modal">
+      <div class="sp-modal__head">
+        <h3 class="sp-h2">Post New Milestone</h3>
+        <button class="sp-modal__close" id="closeMilestoneModal"><i data-feather="x"></i></button>
+      </div>
+      <form id="achievementForm">
+        <div class="sp-grid-2">
+          <div class="sp-field">
+            <label>Category</label>
+            <select class="sp-input" name="type" required>
+              <option value="revenue">Revenue</option>
+              <option value="funding">Funding</option>
+              <option value="users">Users</option>
+              <option value="launch">Product Launch</option>
+              <option value="award">Award / Grant</option>
+              <option value="partnership">Partnership</option>
+              <option value="hiring">Hiring / Team</option>
+            </select>
+          </div>
+          <div class="sp-field">
+            <label>Date</label>
+            <input class="sp-input" type="date" name="date" required>
+          </div>
+        </div>
+        <div class="sp-field">
+          <label>Title</label>
+          <input class="sp-input" type="text" name="title" placeholder="e.g. Crossed INR 1 Crore ARR" required>
+        </div>
+        <div class="sp-field">
+          <label>Value (optional)</label>
+          <input class="sp-input" type="number" name="value" placeholder="Numeric value" min="0">
+        </div>
+        <div class="sp-field">
+          <label>Description</label>
+          <textarea class="sp-input" name="description" placeholder="Context or outcomes…"></textarea>
+        </div>
+        <div class="sp-field">
+          <label>Media URL</label>
+          <input class="sp-input" type="url" name="media_url" placeholder="https://…">
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="sp-btn sp-btn--ghost" id="cancelMilestoneModal">Cancel</button>
+          <button type="submit" class="sp-btn sp-btn--primary">Publish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: EDIT STARTUP PROFILE ═══ -->
+  <div class="sp-modal-overlay" id="editProfileModal">
+    <div class="sp-modal" style="max-width: 600px;">
+      <div class="sp-modal__head">
+        <h3 class="sp-h2">Edit Company Profile</h3>
+        <button class="sp-modal__close" id="closeEditProfileModal"><i data-feather="x"></i></button>
+      </div>
+      <form id="editProfileForm">
+        <div class="sp-grid-2">
+          <div class="sp-field">
+            <label>Company Name</label>
+            <input class="sp-input" type="text" name="name" required>
+          </div>
+          <div class="sp-field">
+            <label>Website</label>
+            <input class="sp-input" type="url" name="website" placeholder="https://...">
+          </div>
+        </div>
+        <div class="sp-grid-2">
+          <div class="sp-field">
+            <label>Sector</label>
+            <select class="sp-input" name="sector" required>
+              <option value="FinTech">FinTech</option>
+              <option value="HealthTech">HealthTech</option>
+              <option value="EdTech">EdTech</option>
+              <option value="CleanTech">CleanTech</option>
+              <option value="SaaS">SaaS</option>
+              <option value="AI/ML">AI/ML</option>
+              <option value="E-commerce">E-commerce</option>
+              <option value="BioTech">BioTech</option>
+            </select>
+          </div>
+          <div class="sp-field">
+            <label>Funding Stage</label>
+            <select class="sp-input" name="stage" required>
+              <option value="Pre-Seed">Pre-Seed</option>
+              <option value="Seed">Seed</option>
+              <option value="Series A">Series A</option>
+              <option value="Series B">Series B</option>
+            </select>
+          </div>
+        </div>
+        <div class="sp-grid-2">
+          <div class="sp-field">
+            <label>Location</label>
+            <input class="sp-input" type="text" name="location" placeholder="e.g. Bengaluru, India">
+          </div>
+          <div class="sp-field">
+            <label>Founded Year</label>
+            <input class="sp-input" type="number" name="founded" min="1990" max="2026" required>
+          </div>
+        </div>
+        <div class="sp-grid-3">
+          <div class="sp-field">
+            <label>Team Size</label>
+            <input class="sp-input" type="number" name="team_size" min="1" required>
+          </div>
+          <div class="sp-field">
+            <label>Current ARR (INR)</label>
+            <input class="sp-input" type="number" name="revenue" min="0" required>
+          </div>
+          <div class="sp-field">
+            <label>Funding Received (INR)</label>
+            <input class="sp-input" type="number" name="received_funding" min="0" required>
+          </div>
+        </div>
+        <div class="sp-grid-2">
+          <div class="sp-field">
+            <label>Funding Ask (INR)</label>
+            <input class="sp-input" type="number" name="funding_ask" min="0" required>
+          </div>
+          <div class="sp-field">
+            <label>Equity Offered (%)</label>
+            <input class="sp-input" type="number" name="equity_offered" min="0" max="100" step="0.01" required>
+          </div>
+        </div>
+        <div class="sp-field">
+          <label>Elevator Pitch / About</label>
+          <textarea class="sp-input" name="pitch" placeholder="Describe your product, problem solved, vision..." required></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="sp-btn sp-btn--ghost" id="cancelEditProfileModal">Cancel</button>
+          <button type="submit" class="sp-btn sp-btn--primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
   <script src="/frontend/core.js"></script>
   <script src="/frontend/startup-page.js"></script>
   <script>initStartupPage();</script>

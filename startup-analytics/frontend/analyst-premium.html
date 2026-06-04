@@ -3,302 +3,840 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Premium Analyst Dashboard</title>
-  <!-- Link to the newly designed Premium CSS -->
+  <title>Ecosystem Intelligence Platform</title>
   <link rel="stylesheet" href="/frontend/analyst-premium.css">
-  
-  <!-- Required External Libs -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  
-  <!-- Feather Icons for a modern feel -->
+  <!-- Feather Icons -->
   <script src="https://unpkg.com/feather-icons"></script>
+  <!-- Chart.js for visualizations -->
+  <script src="/frontend/chart.js"></script>
+  <script src="/frontend/d3.v7.min.js"></script>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-layout">
     
-    <!-- Top Navigation -->
-    <header class="navbar">
-      <div class="brand">
-        <div class="brand-icon">A</div>
-        <h1 style="font-size: 1.25rem; font-weight: 700;">Analyst Control Room</h1>
+    <!-- Permanent Left Sidebar Navigation -->
+    <aside class="sp-sidebar">
+      <div class="sp-sidebar__brand">
+        <div class="sp-sidebar__logo">E</div>
+        <span class="sp-sidebar__title">Ecosystem Intel</span>
       </div>
-      
-      <div class="nav-actions">
-        <!-- Interactive Controls -->
-        <span id="apiHealthBadge" class="badge warning">Checking backend...</span>
-        <button id="refreshWorkspaceButton" class="btn btn-outline" type="button" title="Force Refresh">
-          <i data-feather="refresh-cw" style="width: 14px; height: 14px; margin-right: 6px;"></i> Refresh
+      <nav class="sp-sidebar__nav">
+        <button class="sp-nav-item active" data-page="overview" id="nav-overview">
+          <i data-feather="grid"></i>
+          <span>Overview</span>
         </button>
-        <button id="exportSummaryButton" class="btn btn-outline" type="button" title="Download Print Summary">
-          <i data-feather="download" style="width: 14px; height: 14px; margin-right: 6px;"></i> Export PDF
+        <button class="sp-nav-item" data-page="explorer" id="nav-explorer">
+          <i data-feather="search"></i>
+          <span>Explorer</span>
         </button>
-        <button id="logoutButton" class="btn btn-primary" type="button">
-          <i data-feather="log-out" style="width: 14px; height: 14px; margin-right: 6px;"></i> Logout
+        <button class="sp-nav-item" data-page="startups" id="nav-startups">
+          <i data-feather="trending-up"></i>
+          <span>Startup Intel</span>
         </button>
+        <button class="sp-nav-item" data-page="investors" id="nav-investors">
+          <i data-feather="dollar-sign"></i>
+          <span>Investor Intel</span>
+        </button>
+        <button class="sp-nav-item" data-page="sectors" id="nav-sectors">
+          <i data-feather="bar-chart-2"></i>
+          <span>Sector Analytics</span>
+        </button>
+        <button class="sp-nav-item" data-page="graph" id="nav-graph">
+          <i data-feather="share-2"></i>
+          <span>Network Graph</span>
+        </button>
+        <button class="sp-nav-item" data-page="predictive" id="nav-predictive">
+          <i data-feather="cpu"></i>
+          <span>Predictive Insights</span>
+        </button>
+        <button class="sp-nav-item" data-page="reports" id="nav-reports">
+          <i data-feather="file-text"></i>
+          <span>Reports</span>
+        </button>
+        <button class="sp-nav-item" data-page="system-health" id="nav-system-health">
+          <i data-feather="activity"></i>
+          <span>System Health</span>
+        </button>
+      </nav>
+      <div class="sp-sidebar__footer">
+        <div>Platform: Foundry v4.2</div>
+        <div style="opacity: 0.6">Role: Analyst</div>
       </div>
-    </header>
+    </aside>
 
-    <!-- Main Workspace Area -->
+    <!-- Main Content Panel -->
     <main class="main-content">
       
-      <!-- Context & Filters Header -->
-      <section class="page-header mt-2">
-        <div>
-          <h2 id="workspaceTitle" style="font-size: 2rem;">Ecosystem Intelligence</h2>
-          <div class="text-micro mt-1" id="workspaceHint">Premium analytics view for investors, founders, and technical reviewers.</div>
-          <div class="text-muted" id="signedInLine">Connecting securely...</div>
-          <div id="lastUpdatedLine" class="text-micro mt-2">Last refreshed: waiting</div>
-          <div id="filterStatus" class="text-micro mt-2">Preparing filters...</div>
+      <!-- Top Navigation Bar -->
+      <header class="top-bar">
+        <div class="top-bar__left">
+          <div class="top-bar__search" id="topBarSearchTrigger" style="cursor: pointer;">
+            <i data-feather="search"></i>
+            <span style="font-size: 0.82rem; color: var(--text-tertiary)">Search ecosystem... <span class="command-palette__shortcut" style="margin-left: 20px;">Ctrl + K</span></span>
+          </div>
         </div>
         
-        <div class="filter-bar">
-          <div class="filter-group">
-            <label>Time Window</label>
-            <select id="timeRangeFilter" class="filter-input">
-              <option value="7">Last 7 Days</option>
-              <option value="30" selected>Last 30 Days</option>
-              <option value="90">Last Quarter</option>
-            </select>
+        <div class="top-bar__right">
+          <div class="top-bar__actions">
+            <span class="sp-badge sp-badge--green">Ecosystem Synced</span>
+            <button id="refreshWorkspaceButton" class="sp-btn sp-btn--secondary sp-btn--sm" title="Reload Workspace">
+              <i data-feather="refresh-cw"></i>
+            </button>
+            <button id="logoutButton" class="sp-btn sp-btn--secondary sp-btn--sm" title="Log Out">
+              <i data-feather="log-out"></i>
+            </button>
           </div>
-          <div class="filter-group">
-            <label>Sector</label>
-            <select id="sectorFilter" class="filter-input">
-              <option value="">All Sectors</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Search Ecosystem</label>
-            <input id="entitySearch" type="search" class="filter-input" placeholder="Find startups, investors...">
-          </div>
-          <div class="filter-group">
-            <label>Detail Depth</label>
-            <select id="detailLimitFilter" class="filter-input" style="min-width: 100px;">
-              <option value="5">Top 5</option>
-              <option value="10" selected>Top 10</option>
-              <option value="20">Top 20</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 1: Top KPIs -->
-      <section class="grid-4 mt-4">
-        <div class="card kpi-card accent-blue">
-          <div class="text-muted">Total Startups</div>
-          <div id="statStartups" class="kpi-value">-</div>
-          <div class="kpi-trend positive"><i data-feather="trending-up" style="width:14px;height:14px"></i> Active pipeline</div>
-        </div>
-        <div class="card kpi-card accent-indigo">
-          <div class="text-muted">Total Investors</div>
-          <div id="statInvestors" class="kpi-value">-</div>
-          <div class="kpi-trend positive"><i data-feather="users" style="width:14px;height:14px"></i> Capital participants</div>
-        </div>
-        <div class="card kpi-card accent-green">
-          <div class="text-muted">Transaction Readiness</div>
-          <div id="statCapital" class="kpi-value">-</div>
-          <div class="kpi-trend positive"><i data-feather="dollar-sign" style="width:14px;height:14px"></i> Total tracked funding Ask</div>
-        </div>
-        <div class="card kpi-card accent-orange">
-          <div class="text-muted">Sector Focus / Density</div>
-          <div style="display: flex; gap: 8px; align-items: baseline;">
-            <div id="statHotSector" class="kpi-value" style="font-size: 1.5rem;">-</div>
-            <div id="statEdges" class="kpi-value" style="font-size: 1rem; color: var(--text-secondary)">(-)</div>
-          </div>
-          <div class="text-micro mt-1">Leading Vertical & Net Density</div>
-        </div>
-      </section>
-
-      <section class="grid-4 mt-4">
-        <div class="card">
-          <div class="text-muted">Growth Signal</div>
-          <div id="growthSignal" class="kpi-value" style="font-size: 1.3rem;">-</div>
-          <div id="growthSignalSub" class="text-micro mt-2">Waiting for momentum data...</div>
-        </div>
-        <div class="card">
-          <div class="text-muted">Conversion Signal</div>
-          <div id="conversionSignal" class="kpi-value" style="font-size: 1.3rem;">-</div>
-          <div id="conversionSignalSub" class="text-micro mt-2">Waiting for engagement data...</div>
-        </div>
-        <div class="card">
-          <div class="text-muted">System Pulse</div>
-          <div id="systemPulse" class="kpi-value" style="font-size: 1.3rem;">-</div>
-          <div id="systemPulseSub" class="text-micro mt-2">Waiting for API telemetry...</div>
-        </div>
-        <div class="card">
-          <div class="text-muted">Risk Watch</div>
-          <div id="riskWatch" class="kpi-value" style="font-size: 1.3rem;">-</div>
-          <div id="riskWatchSub" class="text-micro mt-2">Waiting for anomaly signals...</div>
-        </div>
-      </section>
-
-      <!-- Section 2: Technical/Operations Dash -->
-      <section class="grid-2 mt-4">
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h3>System & Database Operations</h3>
-              <div class="text-muted mt-1">Live query volume and latencies</div>
+          <div class="top-bar__user">
+            <div class="top-bar__avatar">A</div>
+            <div style="display: flex; flex-direction: column;">
+              <strong style="font-size: 0.8rem;" id="topBarUserName">Analyst</strong>
+              <span style="font-size: 0.7rem; color: var(--text-sec);">Session Active</span>
             </div>
-            <span id="opsBadge" class="badge success">Live</span>
-          </header>
-          <div class="card-body">
-            <div class="grid-2" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
-              <div class="insight-label">
-                <span class="text-micro">Requests</span>
-                <strong class="insight-value" id="opsRequests">-</strong>
-              </div>
-              <div class="insight-label">
-                <span class="text-micro">Avg Latency</span>
-                <strong class="insight-value" id="opsLatency">-</strong>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Containers -->
+      <div class="page-container">
+
+        <!-- PAGE 1: Overview -->
+        <section class="sp-page active" id="page-overview">
+
+          <!-- Page header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <h1 class="sp-h1">Ecosystem Command Center</h1>
+              <p class="sp-sub">Real-time intelligence across startups, investors, and capital flows</p>
+            </div>
+            <div class="live-dot">LIVE</div>
+          </div>
+
+          <!-- ① Health Score Card -->
+          <div class="health-score-card" id="healthScoreCard">
+            <div class="health-score-ring">
+              <svg viewBox="0 0 140 140" width="140" height="140">
+                <circle class="health-score-ring__track" cx="70" cy="70" r="60"/>
+                <circle class="health-score-ring__fill" id="healthRingFill" cx="70" cy="70" r="60" stroke="#10B981"/>
+              </svg>
+              <div class="health-score-ring__label">
+                <span class="health-score-ring__num" id="healthScoreNum">—</span>
+                <span class="health-score-ring__max">/ 100</span>
               </div>
             </div>
-            <div class="chart-container mt-6">
-              <canvas id="opsTrendChart"></canvas>
+
+            <div class="health-score-meta">
+              <div class="health-score-meta__grade" id="healthScoreGrade">Loading...</div>
+              <div class="health-score-meta__desc" id="healthScoreDesc">Calculating ecosystem parameters...</div>
+              <div class="health-score-meta__bars" id="healthScoreBars">
+                <div class="health-bar-row">
+                  <span class="health-bar-row__label">Network Density</span>
+                  <div class="health-bar-row__track"><div class="health-bar-row__fill" style="width:0%;background:var(--primary)" id="hbar-density"></div></div>
+                  <span class="health-bar-row__val" id="hval-density">0%</span>
+                </div>
+                <div class="health-bar-row">
+                  <span class="health-bar-row__label">Sector Coverage</span>
+                  <div class="health-bar-row__track"><div class="health-bar-row__fill" style="width:0%;background:var(--success)" id="hbar-sector"></div></div>
+                  <span class="health-bar-row__val" id="hval-sector">0%</span>
+                </div>
+                <div class="health-bar-row">
+                  <span class="health-bar-row__label">Investor Activity</span>
+                  <div class="health-bar-row__track"><div class="health-bar-row__fill" style="width:0%;background:var(--warning)" id="hbar-investor"></div></div>
+                  <span class="health-bar-row__val" id="hval-investor">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="health-score-actions">
+              <button class="sp-btn sp-btn--primary sp-btn--sm" onclick="navigate('graph')">
+                <i data-feather="share-2"></i> Explore Network
+              </button>
+              <button class="sp-btn sp-btn--secondary sp-btn--sm" onclick="navigate('reports')">
+                <i data-feather="file-text"></i> Generate Report
+              </button>
             </div>
           </div>
-        </article>
 
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h3>Health & Errors</h3>
-              <div class="text-muted mt-1">Reliability indicators</div>
+          <!-- ② KPI Grid -->
+          <div>
+            <div class="section-hdr">
+              <span class="section-hdr__title">Key Performance Indicators</span>
+              <span class="sp-sub" id="kpiLastUpdated">—</span>
             </div>
-            <div class="insight-label text-right">
-              <span class="text-micro">Failure Rate</span>
-              <strong class="insight-value" id="opsFailureRate" style="color: var(--status-danger)">-</strong>
+            <div class="kpi-grid" id="kpiGrid">
+              <!-- Rendered by JS -->
             </div>
-          </header>
-          <div class="card-body" style="display: flex; gap: 1rem;">
-            <div class="chart-container" style="flex: 1; height: 200px;">
-              <canvas id="opsStatusChart"></canvas>
+          </div>
+
+          <!-- ③ Insights + Activity (2-col) -->
+          <div class="sp-grid-2">
+            <!-- AI Insights Panel -->
+            <div class="insights-panel">
+              <div class="insights-panel__header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <i data-feather="cpu" style="width:15px;height:15px;color:var(--primary)"></i>
+                  <span class="sp-h3" style="font-size:0.78rem;">AI Graph Insights</span>
+                </div>
+                <span class="sp-badge sp-badge--blue">Neo4j</span>
+              </div>
+              <div class="insights-panel__body" id="insightsList">
+                <!-- Rendered by JS -->
+              </div>
             </div>
-            <div style="flex: 1; border-left: 1px solid var(--border-color); padding-left: 1rem;">
-              <h4 class="text-micro mb-2">Error Logs</h4>
-              <div id="opsErrors" class="insight-list mt-4" style="max-height: 200px; overflow-y: auto;">
-                <!-- Error logs injected here -->
+
+            <!-- Activity Timeline -->
+            <div class="activity-timeline">
+              <div class="activity-timeline__header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <i data-feather="zap" style="width:15px;height:15px;color:var(--warning)"></i>
+                  <span class="sp-h3" style="font-size:0.78rem;">Ecosystem Activity</span>
+                </div>
+                <span class="live-dot">LIVE</span>
+              </div>
+              <div class="activity-timeline__body" id="activityFeed">
+                <!-- Rendered by JS -->
               </div>
             </div>
           </div>
-        </article>
-      </section>
 
-      <!-- Section 3: Business Insights -->
-      <section class="card mt-4">
-        <header class="card-header">
+          <!-- ④ Sector Snapshot -->
           <div>
-            <h2>Sector & Attention Insights</h2>
-            <div class="text-muted mt-1">Investor grade capital flow and concentration</div>
-          </div>
-          <div style="display:flex; gap:.75rem; align-items:center;">
-            <span id="businessBadge" class="badge">0 sectors visible</span>
-            <button id="exportTableButton" class="btn btn-outline"><i data-feather="bar-chart-2" style="width:14px;height:14px;margin-right:4px;"></i> Export Table</button>
-          </div>
-        </header>
-        <div class="card-body grid-2">
-          <div>
-            <h4 class="text-micro mb-2" style="margin-bottom: 1rem;">Funding Demand By Sector</h4>
-            <div class="chart-container" style="height: 240px;">
-              <canvas id="sectorChart"></canvas>
+            <div class="section-hdr">
+              <span class="section-hdr__title">Top Sector Snapshot</span>
+              <button class="section-hdr__action" onclick="navigate('sectors')">View All Sectors →</button>
+            </div>
+            <div class="sector-grid" id="sectorSnapshot">
+              <!-- Rendered by JS -->
             </div>
           </div>
-          <div>
-            <h4 class="text-micro mb-2" style="margin-bottom: 1rem;">Attention Distribution</h4>
-            <div class="chart-container" style="height: 240px;">
-              <canvas id="distributionChart"></canvas>
+
+          <!-- ⑤ Leaderboards (2-col) -->
+          <div class="sp-grid-2">
+            <!-- Top Startups -->
+            <div class="leaderboard-card">
+              <div class="leaderboard-card__header">
+                <i data-feather="trending-up" style="width:14px;height:14px;color:var(--success)"></i>
+                <span class="sp-h3" style="font-size:0.78rem;">Top Startups by Velocity</span>
+              </div>
+              <div id="startupLeaderboard"><!-- Rendered by JS --></div>
+            </div>
+            <!-- Top Investors -->
+            <div class="leaderboard-card">
+              <div class="leaderboard-card__header">
+                <i data-feather="dollar-sign" style="width:14px;height:14px;color:var(--warning)"></i>
+                <span class="sp-h3" style="font-size:0.78rem;">Top Investors by Score</span>
+              </div>
+              <div id="investorLeaderboard"><!-- Rendered by JS --></div>
             </div>
           </div>
-        </div>
-      </section>
-      
-      <!-- Section 4: Momentum & Activity Arrays -->
-      <section class="grid-2 mt-4">
-        <article class="card">
-          <header class="card-header">
+
+          <!-- ⑥ Network Preview + Quick Actions (2-col) -->
+          <div class="sp-grid-2">
+            <!-- Network Preview -->
+            <div class="network-preview">
+              <div class="section-hdr" style="margin-bottom:0;">
+                <span class="section-hdr__title">Network Snapshot</span>
+                <button class="section-hdr__action" onclick="navigate('graph')">Open Full Explorer →</button>
+              </div>
+              <div class="network-preview__stats" id="networkStats">
+                <div class="network-stat"><div class="network-stat__val" id="netNodes">—</div><div class="network-stat__label">Nodes</div></div>
+                <div class="network-stat"><div class="network-stat__val" id="netEdges">—</div><div class="network-stat__label">Edges</div></div>
+                <div class="network-stat"><div class="network-stat__val" id="netDensity">—</div><div class="network-stat__label">Density</div></div>
+              </div>
+              <div class="network-preview__canvas">
+                <canvas id="networkMiniCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+                <span id="networkPreviewLabel" style="position:absolute;z-index:1;font-size:0.72rem;color:var(--text-tertiary);pointer-events:none;">Mini graph preview</span>
+              </div>
+              <button class="sp-btn sp-btn--primary" style="width:100%;" onclick="navigate('graph')">
+                <i data-feather="share-2"></i> Open Full Graph Explorer
+              </button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div class="section-hdr" style="margin-bottom:0;">
+                <span class="section-hdr__title">Quick Actions</span>
+              </div>
+              <div class="quick-actions">
+                <button class="quick-action-btn" onclick="navigate('explorer')">
+                  <div class="quick-action-btn__icon"><i data-feather="search"></i></div>
+                  <div class="quick-action-btn__label">Explore Ecosystem</div>
+                  <div class="quick-action-btn__sub">Search all entities</div>
+                </button>
+                <button class="quick-action-btn" onclick="navigate('graph')">
+                  <div class="quick-action-btn__icon"><i data-feather="share-2"></i></div>
+                  <div class="quick-action-btn__label">View Network</div>
+                  <div class="quick-action-btn__sub">Interactive graph</div>
+                </button>
+                <button class="quick-action-btn" onclick="navigate('reports')">
+                  <div class="quick-action-btn__icon"><i data-feather="file-text"></i></div>
+                  <div class="quick-action-btn__label">Generate Report</div>
+                  <div class="quick-action-btn__sub">Export intelligence</div>
+                </button>
+                <button class="quick-action-btn" onclick="navigate('predictive')">
+                  <div class="quick-action-btn__icon"><i data-feather="cpu"></i></div>
+                  <div class="quick-action-btn__label">Predictive Insights</div>
+                  <div class="quick-action-btn__sub">AI forecasting</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- PAGE 2: Explorer -->
+        <section class="sp-page" id="page-explorer">
+
+          <!-- Header row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;">
             <div>
-              <h3>Growth Momentum</h3>
-              <div id="overviewBadge" class="text-micro mt-1">0 startups in view</div>
+              <h1 class="sp-h1">Ecosystem Explorer</h1>
+              <p class="sp-sub">Crunchbase-style entity investigation across the full Neo4j graph</p>
             </div>
-          </header>
-          <div class="card-body insight-list" id="hotSectorsList">
-            <!-- Driven by JS -->
+            <div style="display:flex;gap:10px;align-items:center;">
+              <span class="live-dot">LIVE</span>
+              <span class="sp-badge sp-badge--blue" id="explorerResultCount">Loading...</span>
+            </div>
           </div>
-        </article>
-        <article class="card">
-          <header class="card-header">
-             <div>
-               <h3>Achievement Leaders</h3>
-               <div id="detailBadge" class="text-micro mt-1">Top 10 row focus</div>
-             </div>
-          </header>
-          <div class="card-body insight-list" id="achievementLeaderList">
-            <!-- Driven by JS -->
-          </div>
-        </article>
-      </section>
 
-      <!-- Section 5: The Ecosystem Graph -->
-      <section class="card mt-4" style="overflow: visible;">
-        <header class="card-header">
+          <!-- Search bar -->
+          <div class="explorer-search-bar">
+            <i data-feather="search" class="explorer-search-bar__icon" style="width:18px;height:18px;"></i>
+            <input type="text" id="explorerSearchInput"
+              placeholder="Search by name, sector, stage, ID, or keyword...">
+            <span class="explorer-search-bar__count" id="explorerCountLabel">0 results</span>
+          </div>
+
+          <!-- Type filter tabs -->
+          <div class="explorer-tabs" id="explorerTabs">
+            <button class="explorer-tab active" data-type="all">All <span class="explorer-tab__count" id="tabCount-all">0</span></button>
+            <button class="explorer-tab" data-type="Startup">🚀 Startups <span class="explorer-tab__count" id="tabCount-Startup">0</span></button>
+            <button class="explorer-tab" data-type="Investor">💼 Investors <span class="explorer-tab__count" id="tabCount-Investor">0</span></button>
+            <button class="explorer-tab" data-type="Founder">👤 Founders <span class="explorer-tab__count" id="tabCount-Founder">0</span></button>
+            <button class="explorer-tab" data-type="sector">🏭 Sectors <span class="explorer-tab__count" id="tabCount-sector">0</span></button>
+          </div>
+
+          <!-- Two-panel workspace -->
+          <div class="explorer-workspace">
+
+            <!-- Left: Results list -->
+            <div class="explorer-results" id="explorerResults">
+              <div class="explorer-empty">
+                <div class="explorer-empty__icon"><i data-feather="loader" style="width:40px;height:40px;"></i></div>
+                <div class="explorer-empty__title">Loading ecosystem data...</div>
+              </div>
+            </div>
+
+            <!-- Right: Pinned entity detail panel -->
+            <div class="explorer-detail-panel" id="explorerDetailPanel">
+              <div class="explorer-detail-panel--empty" id="explorerDetailEmpty">
+                <i data-feather="mouse-pointer" style="width:36px;height:36px;opacity:0.3;"></i>
+                <div style="font-size:0.88rem;font-weight:600;color:var(--text-sec)">Select an entity</div>
+                <div style="font-size:0.78rem;max-width:200px;">Click any result to open its full intelligence profile</div>
+              </div>
+              <div id="explorerDetailContent" style="display:none;">
+                <!-- Dynamically rendered by JS -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- PAGE 3: Startup Intelligence -->
+        <section class="sp-page" id="page-startups">
+
+          <!-- Page header -->
+          <div class="intel-page-header">
+            <div>
+              <h1 class="sp-h1">Startup Intelligence</h1>
+              <p class="sp-sub">Cohort performance, growth tracking, and ranking analysis</p>
+            </div>
+            <div class="intel-header-actions">
+              <button class="sp-btn sp-btn--ghost sp-btn--sm" id="startupExportCSV">
+                <i data-feather="download" style="width:14px;height:14px"></i> CSV
+              </button>
+              <button class="sp-btn sp-btn--secondary sp-btn--sm" id="startupExportPDF">
+                <i data-feather="file-text" style="width:14px;height:14px"></i> PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Shared Filter Bar -->
+          <div class="intel-filter-bar" id="startupFilterBar">
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Sector</label>
+              <select class="intel-filter-select" id="stFilterSector">
+                <option value="">All Sectors</option>
+              </select>
+            </div>
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Stage</label>
+              <select class="intel-filter-select" id="stFilterStage">
+                <option value="">All Stages</option>
+                <option value="Pre-Seed">Pre-Seed</option>
+                <option value="Seed">Seed</option>
+                <option value="Series A">Series A</option>
+                <option value="Series B">Series B</option>
+              </select>
+            </div>
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Search</label>
+              <input type="text" class="intel-filter-input" id="stFilterSearch" placeholder="Startup name...">
+            </div>
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Sort By</label>
+              <select class="intel-filter-select" id="stFilterSort">
+                <option value="ach">Achievements</option>
+                <option value="connections">Connections</option>
+                <option value="influence">Influence Score</option>
+                <option value="funding">Funding Ask</option>
+              </select>
+            </div>
+            <button class="sp-btn sp-btn--primary sp-btn--sm" id="stApplyFilter">Apply</button>
+          </div>
+
+          <!-- KPI Row -->
+          <div class="intel-kpi-row" id="startupKpiRow">
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(59,130,246,0.12)">🚀</div>
+              <div>
+                <div class="intel-kpi-card__val" id="stKpiTotal">—</div>
+                <div class="intel-kpi-card__label">Total Startups</div>
+              </div>
+            </div>
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(16,185,129,0.12)">🏆</div>
+              <div>
+                <div class="intel-kpi-card__val" id="stKpiTopAch">—</div>
+                <div class="intel-kpi-card__label">Top Achievement Count</div>
+              </div>
+            </div>
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(245,158,11,0.12)">🔗</div>
+              <div>
+                <div class="intel-kpi-card__val" id="stKpiConnected">—</div>
+                <div class="intel-kpi-card__label">Most Connected</div>
+              </div>
+            </div>
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(139,92,246,0.12)">⭐</div>
+              <div>
+                <div class="intel-kpi-card__val" id="stKpiTopInfluence">—</div>
+                <div class="intel-kpi-card__label">Top Influence Score</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2-col grid: Charts -->
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">Funding vs Attention Scatter</h3>
+                <span class="sp-badge sp-badge--blue">Neo4j live</span>
+              </div>
+              <div class="intel-chart-wrap">
+                <canvas id="chartFundingAttention" height="220"></canvas>
+              </div>
+            </div>
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">Sector Distribution</h3>
+                <span class="sp-badge sp-badge--blue">Neo4j live</span>
+              </div>
+              <div class="intel-chart-wrap">
+                <canvas id="chartSectorDist" height="220"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2-col grid: Rankings + Charts -->
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">Achievement Velocity</h3>
+                <span class="sp-badge sp-badge--green">90-day</span>
+              </div>
+              <div class="intel-chart-wrap">
+                <canvas id="chartAchVelocity" height="200"></canvas>
+              </div>
+            </div>
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">Startup Lifecycle</h3>
+                <span class="sp-badge sp-badge--blue">Stage split</span>
+              </div>
+              <div class="intel-chart-wrap">
+                <canvas id="chartLifecycle" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ranking Tables -->
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">🏆 Top Achievement Leaders</h3>
+                <span class="sp-badge sp-badge--green">Live</span>
+              </div>
+              <div class="intel-rank-table-wrap" id="startupRankAch">
+                <div class="intel-loading">Loading...</div>
+              </div>
+            </div>
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">🔗 Most Connected Startups</h3>
+                <span class="sp-badge sp-badge--blue">Graph</span>
+              </div>
+              <div class="intel-rank-table-wrap" id="startupRankConn">
+                <div class="intel-loading">Loading...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">⭐ Highest Influence Score</h3>
+                <span class="sp-badge sp-badge--blue">Neo4j 2-hop</span>
+              </div>
+              <div class="intel-rank-table-wrap" id="startupRankInfl">
+                <div class="intel-loading">Loading...</div>
+              </div>
+            </div>
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">💰 Highest Funding Ask</h3>
+                <span class="sp-badge sp-badge--yellow">Demand</span>
+              </div>
+              <div class="intel-rank-table-wrap" id="startupRankFund">
+                <div class="intel-loading">Loading...</div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- PAGE 4: Investor Intelligence -->
+        <section class="sp-page" id="page-investors">
+
+          <!-- Page header -->
+          <div class="intel-page-header">
+            <div>
+              <h1 class="sp-h1">Investor Intelligence</h1>
+              <p class="sp-sub">Deployment behavior, sector preferences, and portfolio analytics</p>
+            </div>
+            <div class="intel-header-actions">
+              <button class="sp-btn sp-btn--ghost sp-btn--sm" id="investorExportCSV">
+                <i data-feather="download" style="width:14px;height:14px"></i> CSV
+              </button>
+              <button class="sp-btn sp-btn--secondary sp-btn--sm" id="investorExportPDF">
+                <i data-feather="file-text" style="width:14px;height:14px"></i> PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Shared Filter Bar -->
+          <div class="intel-filter-bar">
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Sector Focus</label>
+              <select class="intel-filter-select" id="invFilterSector">
+                <option value="">All Sectors</option>
+              </select>
+            </div>
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Search</label>
+              <input type="text" class="intel-filter-input" id="invFilterSearch" placeholder="Investor name or firm...">
+            </div>
+            <div class="intel-filter-group">
+              <label class="intel-filter-label">Sort By</label>
+              <select class="intel-filter-select" id="invFilterSort">
+                <option value="influence">Influence Score</option>
+                <option value="connections">Connections</option>
+                <option value="leaderboard">Leaderboard Score</option>
+              </select>
+            </div>
+            <button class="sp-btn sp-btn--primary sp-btn--sm" id="invApplyFilter">Apply</button>
+          </div>
+
+          <!-- KPI Row -->
+          <div class="intel-kpi-row">
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(245,158,11,0.12)">💼</div>
+              <div>
+                <div class="intel-kpi-card__val" id="invKpiTotal">—</div>
+                <div class="intel-kpi-card__label">Total Investors</div>
+              </div>
+            </div>
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(139,92,246,0.12)">⭐</div>
+              <div>
+                <div class="intel-kpi-card__val" id="invKpiTopInfl">—</div>
+                <div class="intel-kpi-card__label">Top Influence Score</div>
+              </div>
+            </div>
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(59,130,246,0.12)">🔗</div>
+              <div>
+                <div class="intel-kpi-card__val" id="invKpiConnected">—</div>
+                <div class="intel-kpi-card__label">Most Connected</div>
+              </div>
+            </div>
+            <div class="intel-kpi-card">
+              <div class="intel-kpi-card__icon" style="background:rgba(16,185,129,0.12)">📊</div>
+              <div>
+                <div class="intel-kpi-card__val" id="invKpiTopScore">—</div>
+                <div class="intel-kpi-card__label">Top Leaderboard Score</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts row -->
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">Sector Preference Distribution</h3>
+                <span class="sp-badge sp-badge--blue">Preference map</span>
+              </div>
+              <div class="intel-chart-wrap">
+                <canvas id="chartInvSectorPref" height="220"></canvas>
+              </div>
+            </div>
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">Investor Influence Distribution</h3>
+                <span class="sp-badge sp-badge--blue">2-hop graph</span>
+              </div>
+              <div class="intel-chart-wrap">
+                <canvas id="chartInvInfl" height="220"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rankings -->
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">🏆 Influence Leaderboard</h3>
+                <span class="sp-badge sp-badge--blue">Graph score</span>
+              </div>
+              <div class="intel-rank-table-wrap" id="investorRankInfl">
+                <div class="intel-loading">Loading...</div>
+              </div>
+            </div>
+            <div class="sp-card">
+              <div class="intel-card-header">
+                <h3 class="sp-h3">🔗 Most Connected Investors</h3>
+                <span class="sp-badge sp-badge--blue">Network edges</span>
+              </div>
+              <div class="intel-rank-table-wrap" id="investorRankConn">
+                <div class="intel-loading">Loading...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-card">
+            <div class="intel-card-header">
+              <h3 class="sp-h3">📊 Redis Leaderboard Rankings</h3>
+              <span class="sp-badge sp-badge--green">Redis sorted set</span>
+            </div>
+            <div class="intel-rank-table-wrap" id="investorRankRedis">
+              <div class="intel-loading">Loading...</div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- PAGE 5: Sector Analytics -->
+        <section class="sp-page" id="page-sectors">
+          <div class="intel-page-header">
+            <div>
+              <h1 class="sp-h1">🏭 Macro Sector Matrices</h1>
+              <p class="sp-sub">Compare verticals and industry groups across the ecosystem</p>
+            </div>
+          </div>
+
+          <div class="sp-card" style="margin-top: 16px;">
+            <h3 class="sp-h3" style="margin-bottom: 16px;">Ecosystem Sector Comparison Matrix</h3>
+            <div class="intel-rank-table-wrap" id="sectorsComparisonMatrix">
+              <div class="intel-loading">Loading sector matrix...</div>
+            </div>
+          </div>
+
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom: 16px;">Funding Demand Analysis</h3>
+              <div class="intel-chart-wrap" style="height:250px;">
+                <canvas id="chartSectorsFundingAsk"></canvas>
+              </div>
+            </div>
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom: 16px;">Investor Interest Analysis</h3>
+              <div class="intel-chart-wrap" style="height:250px;">
+                <canvas id="chartSectorsInterest"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 6: Network Graph (D3 Explorer) -->
+        <section class="sp-page" id="page-graph">
           <div>
-            <h2>Knowledge Graph Explorer</h2>
-            <div class="text-muted mt-1">Interactive network traversal of entities</div>
+            <h1 class="sp-h1">🕸 Neo4j Interactive Network Graph</h1>
+            <p class="sp-sub">Explore startup, investor, and founder nodes across active database clusters</p>
           </div>
-          <span id="networkBadge" class="badge">Render on scroll</span>
-        </header>
-        <div class="card-body" style="padding: 0;">
-          <div class="graph-shell" style="position: relative;">
-            <svg id="networkGraph"></svg>
-            <div id="graphTip" style="position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 4px; pointer-events: none; opacity: 0; font-size: 0.75rem;"></div>
-          </div>
-        </div>
-      </section>
 
-      <!-- Section 6: Detail Views (Tables) -->
-      <section class="grid-2 mt-4" style="margin-bottom: 4rem;">
-        <article class="card" style="grid-column: span 2;">
-          <header class="card-header">
-             <h3>Ecosystem Entities (Filtered)</h3>
-          </header>
-          <div class="card-body" style="padding: 0;">
-            <div class="table-wrapper" id="startupTable">
-              <!-- Replaced by JS -->
+          <!-- Network graph canvas container -->
+          <div class="graph-viewport" style="position:relative; min-height:520px; display:flex; align-items:center; justify-content:center;">
+            <svg id="networkGraph" viewBox="0 0 960 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:470px;border-radius:16px;overflow:hidden;background:rgba(255,255,255,0.03);"></svg>
+            <div id="graphTip" class="graph-tip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity 0.15s ease;z-index:2;background:rgba(15,23,42,.96);color:#fff;padding:10px;border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.24);font-size:0.82rem;line-height:1.4;max-width:240px;"></div>
+          </div>
+          <div id="graphNotice" style="text-align:center;color:var(--text-sec);font-size:0.9rem;margin-top:16px">Loading neo4j network graph…</div>
+        </section>
+
+        <!-- PAGE 7: Predictive Insights -->
+        <section class="sp-page" id="page-predictive">
+          <div>
+            <h1 class="sp-h1">🔮 Future Predictive Intelligence</h1>
+            <p class="sp-sub">AI-driven sector forecasts, hotspots, and portfolio risks</p>
+          </div>
+
+          <div class="sp-grid-2" style="margin-top: 16px;">
+            <!-- Emerging Hotspots -->
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom: 16px;">Emerging Sectors & Funding Hotspots</h3>
+              <div style="display:flex; flex-direction:column; gap:16px;" id="predictiveHotspots">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Risks & Bottlenecks -->
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom: 16px;">Systemic Risk Warnings & Network Bottlenecks</h3>
+              <div style="display:flex; flex-direction:column; gap:16px;" id="predictiveRisks">
+                <!-- Injected dynamically -->
+              </div>
             </div>
           </div>
-        </article>
-        <article class="card">
-          <header class="card-header">
-            <h3>Investor Leaderboard</h3>
-          </header>
-          <div class="card-body insight-list" id="leaderboardList"></div>
-        </article>
-        <article class="card">
-          <header class="card-header">
-            <h3>Alerts & Search</h3>
-          </header>
-          <div class="card-body">
-            <div id="insightAlerts" class="insight-list"></div>
-            <div class="mt-4"></div>
-            <div id="searchResults" class="insight-list"></div>
-          </div>
-        </article>
-      </section>
+        </section>
 
-      <div style="display: none;">
-        <div id="apiHealthLine"></div>
-        <div id="statEngagement"></div>
+        <!-- PAGE 8: Reports -->
+        <section class="sp-page" id="page-reports">
+          <div class="intel-page-header">
+            <div>
+              <h1 class="sp-h1">📄 Reports Compilation Center</h1>
+              <p class="sp-sub">Generate and export summaries of database segments</p>
+            </div>
+          </div>
+
+          <div class="sp-card" style="margin-top: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 20px;">
+              <div style="display:flex; gap:12px; align-items:center;">
+                <select id="reportsSelectType" class="intel-filter-select" style="min-width:240px;">
+                  <option value="weekly">Weekly Ecosystem Overview Report</option>
+                  <option value="monthly">Monthly Capital Deployment Report</option>
+                  <option value="investor">Investor Intelligence Ledger Report</option>
+                  <option value="startup">Startup Growth and Achievement Report</option>
+                </select>
+                <button class="sp-btn sp-btn--primary" id="reportsGenerateBtn">Compile Report</button>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="sp-btn sp-btn--ghost" id="reportsExportCSV"><i data-feather="download"></i> Export CSV</button>
+                <button class="sp-btn sp-btn--ghost" id="reportsExportExcel"><i data-feather="file-text"></i> Export Excel</button>
+                <button class="sp-btn sp-btn--ghost" id="reportsExportPDF"><i data-feather="printer"></i> Print PDF</button>
+              </div>
+            </div>
+
+            <!-- Reports preview pane -->
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 30px; background: rgba(0,0,0,0.15); min-height: 300px; font-size: 0.85rem;" id="reportsPreviewArea">
+              <div style="text-align:center; padding:60px 0;">
+                <i data-feather="file" style="width:36px;height:36px;color:var(--text-tertiary);margin-bottom:8px"></i>
+                <p style="color:var(--text-sec)">Choose a report type and compile to render the intelligence summary.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGE 9: System Health -->
+        <section class="sp-page" id="page-system-health">
+          <div>
+            <h1 class="sp-h1">⚙ Database Operations & Health Telemetry</h1>
+            <p class="sp-sub">Platform query logs, Redis key-value status, and latency trackers</p>
+          </div>
+
+          <div class="sp-grid-4">
+            <div class="sp-card">
+              <div class="sp-sub">API Gateway</div>
+              <div class="sp-h2" style="margin-top:8px; color:var(--success)">Online</div>
+            </div>
+            <div class="sp-card">
+              <div class="sp-sub">Neo4j Database</div>
+              <div class="sp-h2" style="margin-top:8px; color:var(--success)">Connected</div>
+            </div>
+            <div class="sp-card">
+              <div class="sp-sub">Redis Lock Queue</div>
+              <div class="sp-h2" style="margin-top:8px; color:var(--success)">Active</div>
+            </div>
+            <div class="sp-card">
+              <div class="sp-sub">Failure Rate</div>
+              <div class="sp-h2" style="margin-top:8px; color:var(--success)">0%</div>
+            </div>
+          </div>
+
+          <div class="sp-grid-2">
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom: 16px;">Query & Request Latency (ms)</h3>
+              <!-- CHART PLACEHOLDER -->
+              <div style="height:220px; background:rgba(255,255,255,0.02); border:1px dashed var(--border-color); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; color:var(--text-tertiary);">
+                Chart Placeholder (Phase 2)
+              </div>
+            </div>
+            <div class="sp-card">
+              <h3 class="sp-h3" style="margin-bottom: 16px;">Session Request Outcomes</h3>
+              <!-- CHART PLACEHOLDER -->
+              <div style="height:220px; background:rgba(255,255,255,0.02); border:1px dashed var(--border-color); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; color:var(--text-tertiary);">
+                Chart Placeholder (Phase 2)
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
-      
     </main>
   </div>
-  
-  <div id="toast" style="position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 24px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 1000;"></div>
 
-  <script>
-    feather.replace();
-  </script>
-  <!-- Load Original Scripts to power the dashboard -->
+  <!-- Right Slide-out Intelligence Drawer -->
+  <div class="intelligence-drawer__backdrop" id="intelligenceDrawerBackdrop"></div>
+  <aside class="intelligence-drawer" id="intelligenceDrawer">
+    <div class="intelligence-drawer__header">
+      <div>
+        <h3 class="sp-h2" id="drawerTitle">Entity Profile</h3>
+        <span class="sp-sub" id="drawerSubtitle">Category Label</span>
+      </div>
+      <button class="sp-btn sp-btn--ghost sp-btn--sm" id="drawerCloseBtn" style="padding:6px">
+        <i data-feather="x"></i>
+      </button>
+    </div>
+    <div class="intelligence-drawer__body" id="drawerBody">
+      <!-- Injected profile details placeholder -->
+    </div>
+  </aside>
+
+  <!-- Command Palette Modal overlay -->
+  <div class="command-palette" id="commandPalette">
+    <div class="command-palette__box">
+      <div class="command-palette__search">
+        <i data-feather="search"></i>
+        <input type="text" placeholder="Type a search query or command..." id="commandPaletteInput">
+      </div>
+      <div class="command-palette__list" id="commandPaletteResults">
+        <!-- Results dynamically rendered -->
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
   <script src="/frontend/core.js"></script>
   <script src="/frontend/analyst-page.js"></script>
   <script>
