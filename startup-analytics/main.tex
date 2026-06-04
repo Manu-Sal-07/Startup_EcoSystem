@@ -1,0 +1,917 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, shadows, fit, backgrounds}
+
+\pgfplotsset{compat=1.18}
+
+% Custom Enterprise Palette (Light Theme Only)
+\definecolor{PrimaryColor}{HTML}{2563EB}
+\definecolor{SecondaryColor}{HTML}{1E293B}
+\definecolor{AccentColor}{HTML}{0EA5E9}
+\definecolor{SuccessColor}{HTML}{10B981}
+\definecolor{WarningColor}{HTML}{F59E0B}
+\definecolor{BgColor}{HTML}{FFFFFF}
+\definecolor{CardBg}{HTML}{F8FAFC}
+\definecolor{CardBorder}{HTML}{CBD5E1}
+\definecolor{TextDark}{HTML}{1E293B}
+\definecolor{TextLight}{HTML}{64748B}
+
+% Configure Beamer Custom Styling
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{title}{fg=PrimaryColor}
+\setbeamercolor{frametitle}{fg=SecondaryColor}
+\setbeamercolor{structure}{fg=PrimaryColor}
+\setbeamercolor{normal text}{fg=TextDark}
+\setbeamercolor{background canvas}{bg=BgColor}
+
+\setbeamertemplate{headline}{}
+
+\setbeamertemplate{frametitle}{
+  \vspace{3mm}
+  \hspace{1mm}
+  \begin{minipage}{0.95\paperwidth}
+    \raggedright
+    {\usebeamerfont{frametitle}\bfseries\color{SecondaryColor}\insertframetitle}
+    \par\vspace{1mm}
+    {\color{AccentColor}\hrule height 1pt}
+  \end{minipage}
+  \vspace{-1mm}
+}
+
+\setbeamertemplate{footline}{
+  \begin{minipage}{\paperwidth}
+    \color{CardBorder}\hrule height 0.5pt
+    \vspace{2mm}
+    \hspace{5mm}
+    \color{TextLight}\scriptsize\sffamily
+    Startup Ecosystem Analytics Platform \hfill DevOps \& Solution Architecture \hfill Slide \insertframenumber\ / \inserttotalframenumber
+    \hspace{5mm}
+    \vspace{2mm}
+  \end{minipage}
+}
+
+\setbeamertemplate{title page}{
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[color=CardBg] (current page.south west) rectangle (current page.north east);
+    
+    % Geometric accent background
+    \fill[color=PrimaryColor] (current page.north west) -- ($(current page.north west)+(4cm,0)$) -- ($(current page.south west)+(1.5cm,0)$) -- (current page.south west) -- cycle;
+    \fill[color=AccentColor] ($(current page.north west)+(4cm,0)$) -- ($(current page.north west)+(4.3cm,0)$) -- ($(current page.south west)+(1.8cm,0)$) -- ($(current page.south west)+(1.5cm,0)$) -- cycle;
+    
+    \node[anchor=west, text width=10.5cm, align=left] at ($(current page.west)+(2cm,0.2cm)$) {
+      {\Huge\bfseries\color{SecondaryColor} Startup Ecosystem\\[2mm] Analytics Platform}\\[4mm]
+      {\large\color{PrimaryColor}\bfseries Architecture \& DevOps Review Presentation}\\[6mm]
+      {\footnotesize\color{TextDark}
+        \textbf{Presenter:} DevOps \& Principal Solutions Architect \\[1.5mm]
+        \textbf{Deployment Stack:} FastAPI $\cdot$ Neo4j 5.13 $\cdot$ Redis 7 $\cdot$ Nginx $\cdot$ Jenkins
+      }
+    };
+  \end{tikzpicture}
+}
+
+% Reusable TColorBox Panels
+\newtcolorbox{scard}[2][]{
+  colback=CardBg,
+  colframe=CardBorder,
+  coltitle=BgColor,
+  fonttitle=\bfseries\sffamily\footnotesize,
+  colbacktitle=PrimaryColor,
+  enhanced,
+  boxrule=0.5pt,
+  sharp corners,
+  title={#2},
+  attach boxed title to top left={yshift=-2mm, xshift=3mm},
+  boxed title style={sharp corners, boxrule=0pt, top=1.2mm, bottom=1.2mm, left=2.5mm, right=2.5mm},
+  top=4.5mm,
+  bottom=2.5mm,
+  left=3.5mm,
+  right=3.5mm,
+  #1
+}
+
+\newtcolorbox{infobox}[2][]{
+  colback=CardBg,
+  colframe=PrimaryColor!20,
+  leftrule=3.5pt,
+  rightrule=0pt,
+  toprule=0pt,
+  bottomrule=0pt,
+  sharp corners,
+  boxrule=0.5pt,
+  fonttitle=\bfseries\sffamily\small\color{PrimaryColor},
+  title={#2},
+  top=1.5mm,
+  bottom=1.5mm,
+  left=2.5mm,
+  right=2.5mm,
+  #1
+}
+
+\newtcolorbox{successbox}[2][]{
+  colback=SuccessColor!5,
+  colframe=SuccessColor!20,
+  leftrule=3.5pt,
+  rightrule=0pt,
+  toprule=0pt,
+  bottomrule=0pt,
+  sharp corners,
+  boxrule=0.5pt,
+  fonttitle=\bfseries\sffamily\small\color{SuccessColor},
+  title={#2},
+  top=1.5mm,
+  bottom=1.5mm,
+  left=2.5mm,
+  right=2.5mm,
+  #1
+}
+
+\begin{document}
+
+% Slide 1: Title Slide
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% Slide 2: Project Vision – Core Objective
+\begin{frame}{Project Vision – Platform Objective}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Platform Objective}
+        Create a technical intelligence platform mapping founders, startups, and investor relationships.
+        \begin{itemize}
+          \item \textbf{Graph Topology:} Models natural networks without joining relational tables.
+          \item \textbf{Safe Capital Flow:} Enables programmatic funding commitments on wallets.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Primary Goals}
+        \begin{itemize}
+          \item \textbf{Query Latency:} Replace slow recursive SQL JOIN operations.
+          \item \textbf{Concurrency:} Eliminate double-allocation conflicts on investment rounds.
+          \item \textbf{Throughput:} Deliver search matching recommendations in sub-15ms.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 3: Project Vision – Portal Roles
+\begin{frame}{Project Vision – Portal Roles}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Startups \& Investors}
+        \begin{itemize}
+          \item \textbf{Startups:} Manage profile attributes, request round commitments, and showcase verified milestones.
+          \item \textbf{Investors:} Track preferred sectors, manage transaction wallets, and receive match leads.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Analysts \& Admin Users}
+        \begin{itemize}
+          \item \textbf{Analysts:} Oversee database health, approve profile registrations, and verify achievements.
+          \item \textbf{System Admin:} Audit wallets, track system health, and clear stale cache entries.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 4: Problem Statement – Relational Pitfalls
+\begin{frame}{Problem Statement – Relational Pitfalls}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{SQL Database Bottleneck}
+        \begin{itemize}
+          \item Relational tables require heavy JOINs to map multi-level connections.
+          \item Computing match scores across 3rd-degree networks causes database locks.
+          \item Performance degrades exponentially as nodes increase.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Lack of Transaction Protection}
+        \begin{itemize}
+          \item Concurrent investment requests to the same round cause oversubscription.
+          \item Race conditions lead to wallet balances drifting out of sync.
+          \item Manual interventions needed for database correction.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 5: Problem Statement – Workflow Obstacles
+\begin{frame}{Problem Statement – Workflow Obstacles}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Unverified Achievement Lifecycles}
+        \begin{itemize}
+          \item Founders self-report milestone metrics without validation.
+          \item Inability to trace, audit, or verify historical round data points.
+          \item Leads to investor distrust and inaccurate leaderboard states.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{API Latency \& Blocking Threads}
+        \begin{itemize}
+          \item Heavy matchmaking computations block the server main request loop.
+          \item Slow analytical lookups cause UI components to freeze or timeout.
+          \item Limits platform scalability under concurrent user loads.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 6: Proposed Solution – Graph Database (Neo4j)
+\begin{frame}{Proposed Solution – Graph Database (Neo4j)}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Native Graph Storage Schema}
+        \begin{itemize}
+          \item Maps entities (Founders, Investors, Startups) as nodes.
+          \item Models actions (invested, interested) as physical graph edges.
+          \item Eliminates the mismatch between application models and storage.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Fast Structural Traversals}
+        \begin{itemize}
+          \item Evaluates path matching queries in microseconds.
+          \item Computes network similarity scores without SQL JOIN overheads.
+          \item Leverages index-free adjacency for relationship walks.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 7: Proposed Solution – Memory Cache (Redis)
+\begin{frame}{Proposed Solution – Memory Cache (Redis)}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Caching \& Result Set Buffering}
+        \begin{itemize}
+          \item Caches heavy query results indexed by MD5 parameter hashes.
+          \item Automatically invalidates profiles on data mutations.
+          \item Serves read-heavy client requests in under 2ms.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Distributed State Synchronization}
+        \begin{itemize}
+          \item Uses Redis lock leases to synchronize simultaneous transfer requests.
+          \item Sorted Sets keep live ranking leaderboards updated.
+          \item Tracks active sessions and coordinates distributed resources.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 8: High-Level System Architecture (Visual)
+\begin{frame}{High-Level System Architecture}
+  \begin{columns}[T]
+    \begin{column}{0.65\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        node distance=1.3cm and 1.5cm,
+        box/.style={rectangle, draw=CardBorder, fill=CardBg, thick, minimum width=2.2cm, minimum height=0.8cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        primarybox/.style={box, draw=PrimaryColor, fill=PrimaryColor!5, minimum width=2.4cm},
+        accentbox/.style={box, draw=AccentColor, fill=AccentColor!5},
+        dbbox/.style={cylinder, draw=SecondaryColor, fill=SecondaryColor!5, shape border rotate=90, minimum width=1.5cm, minimum height=1.0cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        arrow/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        % Nodes
+        \node[box] (browser) {Client UI \\ (Vanilla JS / D3)};
+        \node[accentbox, right=of browser] (nginx) {Nginx Proxy \\ (Port 80)};
+        \node[primarybox, right=of nginx] (fastapi) {FastAPI App \\ (Port 8000)};
+        \node[dbbox, above right=0.1cm and 1.0cm of fastapi] (redis) {Redis 7 \\ (Cache/Locks)};
+        \node[dbbox, below right=0.1cm and 1.0cm of fastapi] (neo4j) {Neo4j 5.13 \\ (Graph DB)};
+
+        % Connections
+        \draw[arrow] (browser) -- node[above, font=\tiny\sffamily] {HTTP} (nginx);
+        \draw[arrow] (nginx) -- node[above, font=\tiny\sffamily] {proxy\_pass} (fastapi);
+        \draw[arrow] (fastapi) to[bend left=15] node[above left, font=\tiny\sffamily] {Session/Lock} (redis);
+        \draw[arrow] (fastapi) to[bend right=15] node[below left, font=\tiny\sffamily] {Cypher/Bolt} (neo4j);
+        
+        \node[draw=WarningColor!50, fill=WarningColor!3, dashed, fit=(redis) (neo4j), label={[font=\tiny\sffamily\bfseries, WarningColor]above:Datastores}] (dbGroup) {};
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{scard}{Network Isolation}
+        Secure private network isolation hides Neo4j and Redis from direct public traffic.
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 9: System Architecture – Gateway Layer (Nginx)
+\begin{frame}{System Architecture – Gateway Layer (Nginx)}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Traffic Routing Configuration}
+        \begin{itemize}
+          \item Exposes a single public IP mapping paths on Port 80.
+          \item Reverse-proxies dynamic routes downstream to Python web-workers.
+          \item Secures APIs by filtering unexpected request protocols.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Static Resource Caching}
+        \begin{itemize}
+          \item Serves static asset files directly from host volumes.
+          \item Decreases backend request load by bypassing Python runtime.
+          \item Configured with gzip compression to minimize page load times.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 10: System Architecture – Async Controller (FastAPI)
+\begin{frame}{System Architecture – Async Controller (FastAPI)}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Asynchronous Route Operations}
+        \begin{itemize}
+          \item Runs routes using Python's async-await concurrency framework.
+          \item Implements dependency injection for connection management.
+          \item Uses Pydantic to validate input JSON schemas strictly.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Connection Pool Management}
+        \begin{itemize}
+          \item Connects to graph databases using persistent connection pools.
+          \item Lifespan handlers bootstrap datastores and close drivers cleanly.
+          \item Recycles dead database sessions automatically.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 11: Database Schema – Graph Entity Model
+\begin{frame}{Database Schema – Graph Entity Model}
+  \begin{columns}[T]
+    \begin{column}{0.65\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        node distance=1.1cm and 1.7cm,
+        gn/.style={circle, draw=PrimaryColor, fill=PrimaryColor!5, thick, minimum size=1.5cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        startup/.style={gn, draw=SuccessColor, fill=SuccessColor!5},
+        investor/.style={gn, draw=AccentColor, fill=AccentColor!5},
+        achievement/.style={gn, draw=WarningColor, fill=WarningColor!5},
+        arrow/.style={-{Stealth[scale=0.8]}, thick, TextLight, font=\sffamily\tiny\bfseries}
+      ]
+        % Nodes
+        \node[gn] (founder) {Founder \\ \texttt{\{name, bg\}}};
+        \node[startup, right=of founder] (startup) {Startup \\ \texttt{\{stage, ask\}}};
+        \node[investor, above=of startup] (investor) {Investor \\ \texttt{\{ticket, sectors\}}};
+        \node[achievement, below=of startup] (achievement) {Achievement \\ \texttt{\{type, date\}}};
+        \node[gn, right=of startup] (analyst) {Analyst \\ \texttt{\{role, name\}}};
+
+        % Edges
+        \draw[arrow] (founder) -- node[above] {FOUNDED} (startup);
+        \draw[arrow] (investor) to[bend left=20] node[right] {INVESTED\_IN} (startup);
+        \draw[arrow] (investor) to[bend right=20] node[left] {INTERESTED\_IN} (startup);
+        \draw[arrow] (investor) -- node[right, pos=0.6] {CONNECTED\_TO} (startup);
+        \draw[arrow] (startup) -- node[left] {HAS\_ACHIEVEMENT} (achievement);
+        
+        \path (startup) edge[loop right, thick, draw=TextLight, Stealth-] node[right, font=\tiny\sffamily\bfseries] {COMPETES\_WITH} (startup);
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{scard}{Graph Properties}
+        Modeling relationships as native entities allows the database to store property fields directly on edges.
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 12: Database Schema – Edge Relationship Properties
+\begin{frame}{Database Schema – Edge Relationship Properties}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Attributes on Graph Edges}
+        \begin{itemize}
+          \item Edges store crucial fields directly (e.g. \texttt{amount} on \texttt{INVESTED\_IN}).
+          \item Eliminates auxiliary lookup tables for relational data.
+          \item Keeps historical transaction metadata close to nodes.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Structural Network Proximity}
+        \begin{itemize}
+          \item Captures competitive relationships via \texttt{COMPETES\_WITH} loops.
+          \item Enables tracing of co-investment networks through shared nodes.
+          \item Allows sector path traversals without index lookups.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 13: Database Schema – Entity Constraints
+\begin{frame}{Database Schema – Entity Constraints}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Database Integrity Constraints}
+        \begin{itemize}
+          \item Uniqueness rules configured on Startup IDs and Investor IDs.
+          \item Prevents identity duplicates at the database server level.
+          \item Restricts orphan relationships from corrupting the graph.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Automatic Execution Script}
+        \begin{itemize}
+          \item Constraints created programmatically at API startup.
+          \item Validates database schema structures during container bootstrap.
+          \item Logs error states if constraints fail validation.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 14: Database Schema – Query Indexing
+\begin{frame}{Database Schema – Query Indexing}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Fast Property Lookup Indexes}
+        \begin{itemize}
+          \item Secondary indices created on startup sector and funding stages.
+          \item Speeds up match filters by avoiding full graph scans.
+          \item Indexes investor preferred locations dynamically.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Performance Improvements}
+        \begin{itemize}
+          \item Node property indexing reduces lookup times to sub-millisecond rates.
+          \item Allows the engine to scale efficiently to thousands of nodes.
+          \item Dynamic query planning benefits from updated indexing stats.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 15: Core Engine – Hybrid Matchmaking Algorithm
+\begin{frame}{Core Engine – Hybrid Matchmaking Algorithm}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Sector \& Capital Alignment}
+        \begin{itemize}
+          \item \textbf{Sector Match (40 pts):} Sector lists overlapping investor interests.
+          \item \textbf{Ticket Overlap (30 pts):} Funding ask falls within investor ticket limits.
+          \item \textbf{Stage Focus (20 pts):} Capital rounds align with investor focus stage.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Network \& Velocity Enhancements}
+        \begin{itemize}
+          \item \textbf{Network Bump (10 pts):} Co-investment paths are within two hops.
+          \item \textbf{Milestone Velocity (10 pts):} Quick achievement velocity ($\ge 3$ milestones in 90 days).
+          \item \textbf{Total Score:} Max score is 110 points.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 16: Matchmaking – Cypher Query Structure
+\begin{frame}[fragile]{Matchmaking – Cypher Query Structure}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{scard}{Match Scoring Execution}
+        \fontsize{6pt}{7.5pt}\selectfont
+        \begin{verbatim}
+MATCH (i:Investor), (s:Startup {id: $startup_id})
+WITH i, s,
+  CASE WHEN s.sector IN i.preferred_sectors THEN 40 
+       ELSE 0 END AS sector_score,
+  CASE WHEN i.ticket_min <= s.funding_ask 
+        AND s.funding_ask <= i.ticket_max THEN 30
+       ELSE 0 END AS ticket_score,
+  CASE WHEN s.stage IN i.stage_focus THEN 20 
+       ELSE 0 END AS stage_score
+OPTIONAL MATCH path = (i)-[:INVESTED_IN*1..2]->(other:Startup)
+WHERE other.sector = s.sector
+WITH i, s, sector_score, ticket_score, stage_score,
+  CASE WHEN count(path) > 0 THEN 10 ELSE 0 END AS network_score
+OPTIONAL MATCH (s)-[:HAS_ACHIEVEMENT]->(a:Achievement)
+WHERE a.date >= date() - duration({days: 90})
+WITH i, sector_score, ticket_score, stage_score, 
+     network_score,
+  CASE WHEN count(a) >= 3 THEN 10 ELSE 0 END AS ach_score
+RETURN i.id, (sector_score + ticket_score + stage_score + 
+             network_score + ach_score) AS total_score
+ORDER BY total_score DESC LIMIT 10
+        \end{verbatim}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{scard}{Execution Profile}
+        \begin{itemize}
+          \item Logic executes inside the Neo4j query planner.
+          \item Minimizes runtime CPU load on Python web workers.
+          \item Traverses up to 2-hop investor relations in microseconds.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 17: Matchmaking – Cypher Execution Details
+\begin{frame}{Matchmaking – Cypher Execution Details}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Cypher Case Optimization}
+        \begin{itemize}
+          \item Computes logical scores entirely in the database engine memory.
+          \item Minimizes CPU usage on the FastAPI web-app worker nodes.
+          \item Uses pre-compiled query templates for speed.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Dynamic Path Traversals}
+        \begin{itemize}
+          \item Traverses co-invested paths (\texttt{INVESTED\_IN*1..2}) recursively.
+          \item Caps returned matched sets to minimize serialization overhead.
+          \item Avoids memory pagination issues with database LIMIT clauses.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 18: Concurrency Control – Double-Spend Vulnerabilities
+\begin{frame}{Concurrency Control – Double-Spend Vulnerabilities}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{The Oversubscription Threat}
+        \begin{itemize}
+          \item High-frequency investor transfers can exceed a startup's round limit.
+          \item Simultaneous writes read stale balances before committing values.
+          \item Leads to over-allocation of funding equity.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Relational Isolation Gaps}
+        \begin{itemize}
+          \item Graph transaction scopes alone do not lock transient state across threads.
+          \item Distributed locks are required to serialize transfer actions.
+          \item Avoids deadlocks by applying timeouts to connection queues.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 19: Concurrency Control – Two-Tier Protection
+\begin{frame}{Concurrency Control – Two-Tier Protection}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Distributed Locking (Redis)}
+        \begin{itemize}
+          \item Backend acquires a lock on the startup ID before checking balances.
+          \item Sets a 10s auto-expiry lease to prevent deadlocks on worker failures.
+          \item Uses redlock principles to handle distributed clusters.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{ACID Graph Transactions}
+        \begin{itemize}
+          \item Transfers mutate balances and update graphs inside one session.
+          \item Rejects transaction changes if the startup round limit is breached.
+          \item Rollback triggers automatically on database constraint errors.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 20: Transaction Lifecycle – Wallet Flow Sequence
+\begin{frame}{Transaction Lifecycle – Wallet Flow Sequence}
+  \begin{columns}[T]
+    \begin{column}{0.65\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        node distance=0.7cm and 0.8cm,
+        box/.style={rectangle, draw=CardBorder, fill=CardBg, rounded corners=2pt, minimum width=2.6cm, minimum height=0.5cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        lock/.style={box, draw=WarningColor, fill=WarningColor!5},
+        db/.style={box, draw=PrimaryColor, fill=PrimaryColor!5},
+        success/.style={box, draw=SuccessColor, fill=SuccessColor!5}
+      ]
+        % Nodes
+        \node[box] (start) {HTTP Fund Request};
+        \node[lock, below=of start] (acquire) {Acquire Redis Lock};
+        \node[db, below=of acquire] (txstart) {Start Neo4j TX};
+        \node[db, below=of txstart] (check) {Check Room Cap};
+        \node[db, below=of check] (write) {Mutate Balances};
+        \node[db, below=of write] (commit) {Commit TX};
+        \node[lock, below=of commit] (release) {Release Lock};
+        \node[success, below=of release] (done) {Invalidate Cache};
+
+        % Connections
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (start) -- (acquire);
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (acquire) -- (txstart);
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (txstart) -- (check);
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (check) -- (write);
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (write) -- (commit);
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (commit) -- (release);
+        \draw[-{Stealth[scale=0.8]}, thick, SecondaryColor] (release) -- (done);
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{scard}{Operational Flow}
+        Synchronizes parallel transactions to ensure round data limits are preserved.
+      \end{scard>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 21: High-Performance Cache – Result Buffering
+\begin{frame}{High-Performance Cache – Result Buffering}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Query Hashing (MD5)}
+        \begin{itemize}
+          \item Generates unique keys by hashing query parameters.
+          \item Caches responses under \texttt{feed:filtered:\{hash\}} for 120 seconds.
+          \item Limits CPU-intensive recommendations on repeated searches.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Active Invalidation Flow}
+        \begin{itemize}
+          \item Any profile update triggers dynamic cache clearing.
+          \item Keeps search data consistent without long wait cycles.
+          \item Evicts dependent queries via atomic Redis keys deletes.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 22: High-Performance Cache – Analytics \& Leaderboards
+\begin{frame}{High-Performance Cache – Analytics \& Leaderboards}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Investor Rankings (ZSET)}
+        \begin{itemize}
+          \item Redis Sorted Sets track scores on \texttt{leaderboard:investors}.
+          \item Increments scores instantly on successful transaction commitments.
+          \item Returns top ranked lists to dashboards with zero query latency.
+        \end{itemize}
+      \end{scard>
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Profile Views Tracking}
+        \begin{itemize}
+          \item Increments click counters using Hash fields (\texttt{views:startup:\{id\}}).
+          \item Periodic background tasks sync clicks back to the database.
+          \item Mitigates database write loads from high-traffic profiles.
+        \end{itemize}
+      \end{scard>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 23: Security Architecture – Token Verification
+\begin{frame}{Security Architecture – Token Verification}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Cryptographic JWT Engine}
+        \begin{itemize}
+          \item Signatures validated using HMAC-SHA256 and custom secrets.
+          \item Password structures secured with salted bcrypt hashing hashes.
+          \item Enforces strict lifetime expiration validation on token payloads.
+        \end{itemize}
+      \end{scard>
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Token Revocation Lists}
+        \begin{itemize}
+          \item Caches blacklisted tokens in Redis memory during logout actions.
+          \item Checks incoming IDs against the blacklist during validation.
+          \item Automatically evicts tokens using Redis TTL settings.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 24: Security Architecture – Access Controls (RBAC)
+\begin{frame}{Security Architecture – Access Controls (RBAC)}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Decorator-Based Authorization}
+        \begin{itemize}
+          \item Restricts specific routes using custom decorators.
+          \item Rejects request handling if user role claims are invalid.
+          \item Validates scope hierarchies dynamically per request thread.
+        \end{itemize}
+      \end{scard>
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{NoSQL Injection Protections}
+        \begin{itemize}
+          \item Parametrizes all Cypher queries at connection execution.
+          \item Rejects unescaped input characters during JSON parsing.
+          \item Limits graph traversal query complexity at driver configuration.
+        \end{itemize}
+      \end{scard>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 25: DevOps Automation – Continuous Integration
+\begin{frame}{DevOps Automation – Continuous Integration}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Lint \& Syntax Verifications}
+        \begin{itemize}
+          \item Automatically checks code syntax and formatting rules on PRs.
+          \item Validates module package dependency structures.
+          \item Uses auto-formatters to preserve consistent styling rules.
+        \end{itemize}
+      \end{scard>
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Pytest Verification Automation}
+        \begin{itemize}
+          \item Runs the test suite in isolation using GitHub Actions.
+          \item Validates backend routing and database driver connectivity.
+          \item Rejects changes failing unit verification checks.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 26: DevOps Automation – CD Deployment Pipeline
+\begin{frame}{DevOps Automation – CD Deployment Pipeline}
+  \begin{columns}[T]
+    \begin{column}{0.65\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        node distance=0.5cm and 0.8cm,
+        stage/.style={rectangle, draw=PrimaryColor, fill=CardBg, rounded corners=3pt, minimum width=2.2cm, minimum height=0.6cm, align=center, font=\sffamily\tiny\bfseries, TextDark},
+        arrow/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        % Pipeline Nodes
+        \node[stage] (checkout) {\faGit*~Checkout \\ Clones main branch};
+        \node[stage, below=of checkout] (validate) {\faPython~Validation \\ Lint \& Syntax};
+        \node[stage, below=of validate] (build) {\faDocker~Docker Build \\ Tag: GIT\_COMMIT};
+        \node[stage, below=of build] (deploy) {\faServer~Deploy Stack \\ Compose Up};
+        \node[stage, below=of deploy] (health) {\faHeartbeat~Health Checks \\ Active REST Probes};
+        \node[stage, below=of health] (summary) {\faFileAlt~Summary \\ Publish Results};
+
+        % Transitions
+        \draw[arrow] (checkout) -- (validate);
+        \draw[arrow] (validate) -- (build);
+        \draw[arrow] (build) -- (deploy);
+        \draw[arrow] (deploy) -- (health);
+        \draw[arrow] (health) -- (summary);
+
+        % Background box for Jenkins scope
+        \begin{scope}[on background layer]
+          \node[draw=PrimaryColor!30, fill=PrimaryColor!2, dashed, fit=(checkout) (summary), label={[font=\tiny\sffamily\bfseries, PrimaryColor]above:Jenkins Pipeline}] (jenkinsScope) {};
+        \end{scope}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{scard}{Continuous Delivery}
+        Pipelines execute automated canary checks during deployments. Rollbacks run instantly if REST health signals timeout.
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 27: DevOps Automation – Container Orchestration
+\begin{frame}[fragile]{DevOps Automation – Container Orchestration}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Container Isolation Strategy}
+        \begin{itemize}
+          \item \textbf{Frontend Container:} Lightweight Alpine Nginx serves static resources directly.
+          \item \textbf{Backend Container:} Python-slim execution environment hosting FastAPI.
+          \item \textbf{Neo4j Container:} Persistent data folders mapped to host volumes.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Network Isolation Policies}
+        \begin{itemize}
+          \item Locks backend containers inside private bridge networks.
+          \item Only Nginx exposes ports to the external public network interfaces.
+          \item Redis and Neo4j block direct external ingress ports.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 28: System Verification – Pytest Infrastructure
+\begin{frame}[fragile]{System Verification – Pytest Infrastructure}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Mock Testing Configurations}
+        \begin{itemize}
+          \item Simulates graph drivers to test route logics in memory.
+          \item Restricts external queries to ensure rapid execution speeds.
+          \item Mocks JWT payloads to bypass login stages during endpoint checks.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Boundary Testing Cases}
+        \begin{itemize}
+          \item Validates transaction locks under simulated parallel conditions.
+          \item Asserts that unauthorized role access yields 403 HTTP codes.
+          \item Tests limit compliance when wallet values edge close to zero.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 29: System Reliability \& Health Diagnostics
+\begin{frame}{System Reliability \& Health Diagnostics}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Active Diagnostics Probes}
+        \begin{itemize}
+          \item Exposes a unified health route verifying external systems.
+          \item Returns service connectivity flags and database latency.
+          \item Enables standard container health checks dynamically.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Error Handling \& Retries}
+        \begin{itemize}
+          \item Middleware records request processing times and errors.
+          \item Database drivers execute exponential backoff retry loops on fail.
+          \item Re-establishes broken network connections without application restarts.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 30: Future Roadmap \& Project Summary
+\begin{frame}{Future Roadmap \& Project Summary}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Technical Growth Roadmap}
+        \begin{itemize}
+          \item Package container configurations as Kubernetes Helm charts.
+          \item Implement central nodes search using Graph Data Science.
+          \item Geo-replicate Redis caches to minimize global read latencies.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{scard}{Architecture Conclusion}
+        \begin{itemize}
+          \item \textbf{FastAPI Async Core:} High-concurrency operations.
+          \item \textbf{Neo4j Graphs:} Relationships modeled natively inside graph stores.
+          \item \textbf{Redis Buffers:} Sub-15ms search matching suggestions.
+        \end{itemize}
+      \end{scard}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
