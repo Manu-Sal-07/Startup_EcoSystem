@@ -61,16 +61,15 @@ pipeline {
                             docker run --rm \
                               -v "${PWD}:/workspace" \
                               -w /workspace \
-                              python:3.12-slim bash -lc "
-                                set -e
+                              python:3.12-slim bash -lc 'set -e
                                 python --version
                                 pip install --upgrade pip --quiet
                                 pip install -r requirements.txt --quiet
-                                python -c \"from fastapi import FastAPI; from fastapi.middleware.cors import CORSMiddleware; from backend.db import neo4j_client, redis_client; from backend.routes import achievements_router, analytics_router, connections_router, funds_router, investors_router, startups_router; print('✓ All imports successful')\"
+                                python -c "from fastapi import FastAPI; from fastapi.middleware.cors import CORSMiddleware; from backend.db import neo4j_client, redis_client; from backend.routes import achievements_router, analytics_router, connections_router, funds_router, investors_router, startups_router; print(\"✓ All imports successful\")"
                                 python -m py_compile backend/app.py
-                                echo '✓ Syntax validation passed'
-                                python -c \"import sys; from backend.app import app; print('✓ FastAPI app instantiates successfully')\"
-                              "
+                                echo "✓ Syntax validation passed"
+                                python -c "import sys; from backend.app import app; print(\"✓ FastAPI app instantiates successfully\")"
+                              '
                         '''
                     }
                 }
@@ -279,7 +278,7 @@ pipeline {
         }
 
         always {
-            cleanWs()
+            deleteDir()
         }
     }
 }
