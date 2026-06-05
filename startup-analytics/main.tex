@@ -69,13 +69,22 @@
     \fill[color=PrimaryColor] (current page.north west) -- ($(current page.north west)+(4cm,0)$) -- ($(current page.south west)+(1.5cm,0)$) -- (current page.south west) -- cycle;
     \fill[color=AccentColor] ($(current page.north west)+(4cm,0)$) -- ($(current page.north west)+(4.3cm,0)$) -- ($(current page.south west)+(1.8cm,0)$) -- ($(current page.south west)+(1.5cm,0)$) -- cycle;
     
-    \node[anchor=west, text width=10.5cm, align=left] at ($(current page.west)+(2cm,0.2cm)$) {
-      {\Huge\bfseries\color{SecondaryColor} Startup Ecosystem\\[2mm] Analytics Platform}\\[4mm]
-      {\large\color{PrimaryColor}\bfseries Architecture \& DevOps Review Presentation}\\[6mm]
-      {\footnotesize\color{TextDark}
-        \textbf{Presenter:} DevOps \& Principal Solutions Architect \\[1.5mm]
-        \textbf{Deployment Stack:} FastAPI $\cdot$ Neo4j 5.13 $\cdot$ Redis 7 $\cdot$ Nginx $\cdot$ Jenkins
+    \node[anchor=north west, text width=10cm, align=left] at ($(current page.north west)+(2cm,-2cm)$) {
+      {\Huge\bfseries\color{SecondaryColor} Startup Ecosystem\\[4mm] Analytics Platform}
+    };
+
+    \node[anchor=north west, draw=PrimaryColor, line width=1pt, fill=white, rounded corners=8pt,
+          text width=9cm, inner sep=10pt, align=left] at ($(current page.north west)+(2cm,-7cm)$) {
+      {\large\bfseries\color{PrimaryColor}Team Members}\\[3mm]
+      {\color{TextDark}\sffamily\small
+        srijan C Vachadmath \hfill USN 1BM23CD060\\[1mm]
+        Manohara Salmani \hfill USN 1BM23CD035\\[1mm]
+        Shreejth Shah \hfill USN 1BM23CD057
       }
+    };
+
+    \node[anchor=south west, text width=10.5cm, align=left] at ($(current page.south west)+(2cm,1.2cm)$) {
+      {\scriptsize\color{TextLight}\sffamily Department of Computer Science and Engineering}
     };
   \end{tikzpicture}
 }
