@@ -1,4 +1,7 @@
-\documentclass[aspectratio=169, 10pt]{beamer}
+import os
+import subprocess
+
+latex_content = r"""\documentclass[aspectratio=169, 10pt]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{helvet}
@@ -153,7 +156,7 @@
 \end{frame}
 
 % Slide 2: Problem Statement
-\begin{frame}[t,allowframebreaks]{Problem Statement}
+\begin{frame}{Problem Statement}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Relational DB Bottleneck}
@@ -189,7 +192,7 @@
 \end{frame}
 
 % Slide 3: Project Vision
-\begin{frame}[t,allowframebreaks]{Project Vision \& Solution Overview}
+\begin{frame}{Project Vision \& Solution Overview}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Platform Objective}
@@ -217,7 +220,7 @@
 \end{frame}
 
 % Slide 4: Database Decision: Neo4j
-\begin{frame}[t,allowframebreaks]{Why Neo4j? — Graph Database Choice}
+\begin{frame}{Why Neo4j? — Graph Database Choice}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \centering
@@ -249,7 +252,7 @@
 \end{frame}
 
 % Slide 5: Database Decision: Redis
-\begin{frame}[t,allowframebreaks]{Why Redis? — High-Performance Caching}
+\begin{frame}{Why Redis? — High-Performance Caching}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \centering
@@ -277,21 +280,40 @@
           \item \textbf{Atomic Lock Lease:} Prevents race conditions during funds transfer.
         \end{itemize}
       \end{scard}
-    \end{column}
+    \end{column>
   \end{columns}
 \end{frame}
 
 % Slide 6: Neo4j Data Model
-\begin{frame}[t,allowframebreaks]{Neo4j Schema \& Graph Design}
+\begin{frame}{Neo4j Schema \& Graph Design}
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
-      \begin{scard}{Neo4j Design Summary}
-        \begin{itemize}
-          \item Native graph model stores founders, startups, investors, and achievements as connected nodes.
-          \item Relationships such as \texttt{FOUNDED}, \texttt{INVESTED\_IN}, and \texttt{HAS\_ACHIEVEMENT} represent business flows.
-          \item Cypher queries traverse multi-hop startup-investor relationships efficiently.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=1.1cm and 1.8cm,
+        gn/.style={circle, draw=PrimaryColor, fill=PrimaryColor!5, thick, minimum size=1.5cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        sn/.style={gn, draw=SuccessColor, fill=SuccessColor!5},
+        in/.style={gn, draw=AccentColor, fill=AccentColor!5},
+        achn/.style={gn, draw=WarningColor, fill=WarningColor!5},
+        arrow/.style={-{Stealth[scale=0.8]}, thick, TextLight, font=\sffamily\tiny\bfseries}
+      ]
+        % Nodes
+        \node[gn] (founder) {Founder \\ \texttt{\{name, bg\}}};
+        \node[sn, right=of founder] (startup) {Startup \\ \texttt{\{stage, ask\}}};
+        \node[in, above=of startup] (investor) {Investor \\ \texttt{\{ticket, sectors\}}};
+        \node[achn, below=of startup] (achievement) {Achievement \\ \texttt{\{type, verified\}}};
+        \node[gn, right=of startup] (analyst) {Analyst \\ \texttt{\{role, name\}}};
+
+        % Edges
+        \draw[arrow] (founder) -- node[above] {FOUNDED} (startup);
+        \draw[arrow] (investor) to[bend left=20] node[right] {INVESTED\_IN} (startup);
+        \draw[arrow] (investor) to[bend right=20] node[left] {INTERESTED\_IN} (startup);
+        \draw[arrow] (investor) -- node[right, pos=0.6] {CONNECTED\_TO} (startup);
+        \draw[arrow] (startup) -- node[left] {HAS\_ACHIEVEMENT} (achievement);
+        \path (startup) edge[loop right, thick, draw=TextLight, Stealth-] node[right, font=\tiny\sffamily\bfseries] {COMPETES\_WITH} (startup);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{scard}{Entity Constraints}
@@ -306,16 +328,35 @@
 \end{frame}
 
 % Slide 7: Redis Implementation
-\begin{frame}[t,allowframebreaks]{Redis Architecture \& Data Flow}
+\begin{frame}{Redis Architecture \& Data Flow}
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
-      \begin{scard}{Redis Cache Flow}
-        \begin{itemize}
-          \item FastAPI checks Redis before calling Neo4j to reduce load.
-          \item Cache hit returns stored JSON; cache miss runs Neo4j and writes the result with TTL.
-          \item TTL invalidation and atomic locks reduce stale reads and concurrency contention.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.4cm and 1.0cm,
+        box/.style={rectangle, draw=CardBorder, fill=CardBg, rounded corners=3pt, minimum width=3.2cm, minimum height=0.6cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        rbox/.style={box, draw=WarningColor, fill=WarningColor!5},
+        dbox/.style={box, draw=PrimaryColor, fill=PrimaryColor!5},
+        sbox/.style={box, draw=SuccessColor, fill=SuccessColor!5},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        \node[box] (req) {FastAPI HTTP Request};
+        \node[rbox, below=of req] (chk) {Query Redis Cache};
+        \node[sbox, below=of chk] (hit) {Cache Hit: Return Cached JSON};
+        \node[dbox, right=of chk] (miss) {Cache Miss};
+        \node[dbox, below=of miss] (neo) {Run Cypher on Neo4j};
+        \node[rbox, below=of neo] (set) {Write Cache + TTL (ex=300)};
+        \node[sbox, below=of set] (resp) {Return Response Data};
+
+        \draw[arr] (req) -- (chk);
+        \draw[arr] (chk) -- node[left, font=\tiny\sffamily] {HIT} (hit);
+        \draw[arr] (chk) -- node[above, font=\tiny\sffamily] {MISS} (miss);
+        \draw[arr] (miss) -- (neo);
+        \draw[arr] (neo) -- (set);
+        \draw[arr] (set) -- (resp);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{scard}{Storage Details}
@@ -330,7 +371,7 @@
 \end{frame}
 
 % Slide 8: High Level Architecture
-\begin{frame}[t,allowframebreaks]{System Architecture Overview}
+\begin{frame}{System Architecture Overview}
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
       \centering
@@ -374,18 +415,28 @@
 \end{frame}
 
 % Slide 9: Startup User Journey
-\begin{frame}[t,allowframebreaks]{Startup User Journey}
+\begin{frame}{Startup User Journey}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
-      \begin{scard}{Startup Flow}
-        \begin{itemize}
-          \item Register via \texttt{POST /auth/signup/startup}.
-          \item Persist startup profile data and founder relationships in Neo4j.
-          \item Post achievements with \texttt{POST /achievements/post} and notify interested investors.
-          \item Accept/reject interest through \texttt{POST /connect/accept}.
-          \item Receive committed funds with ZSET-backed score ordering.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.4cm and 0.8cm,
+        step/.style={rectangle, draw=SuccessColor, fill=SuccessColor!5, rounded corners=2pt, minimum width=3.0cm, minimum height=0.6cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        \node[step] (reg) {Register Startup Account \\ \texttt{POST /auth/signup/startup}};
+        \node[step, below=of reg] (prof) {Profile Managed \\ \texttt{Neo4j Node Created}};
+        \node[step, below=of prof] (ach) {Post Achievement / Ask \\ \texttt{POST /achievements/post}};
+        \node[step, below=of ach] (dec) {Accept/Reject Interest \\ \texttt{POST /connect/accept}};
+        \node[step, below=of dec] (fund) {Receive Committed Funds \\ \texttt{ZSET zincrby score}};
+
+        \draw[arr] (reg) -- (prof);
+        \draw[arr] (prof) -- (ach);
+        \draw[arr] (ach) -- (dec);
+        \draw[arr] (dec) -- (fund);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.42\textwidth}
       \begin{scard}{Key Workflow States}
@@ -399,18 +450,28 @@
 \end{frame}
 
 % Slide 10: Investor User Journey
-\begin{frame}[t,allowframebreaks]{Investor User Journey}
+\begin{frame}{Investor User Journey}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
-      \begin{scard}{Investor Flow}
-        \begin{itemize}
-          \item Register investor profile via \texttt{POST /auth/signup/investor}.
-          \item Browse startup feed with \texttt{GET /startups/feed}.
-          \item Review match score through \texttt{GET /investors/\{id\}/matches}.
-          \item Express interest using \texttt{POST /connect/interest}.
-          \item Execute funding via \texttt{POST /funds/transfer}.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.4cm and 0.8cm,
+        step/.style={rectangle, draw=AccentColor, fill=AccentColor!5, rounded corners=2pt, minimum width=3.0cm, minimum height=0.6cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        \node[step] (reg) {Register Investor Profile \\ \texttt{POST /auth/signup/investor}};
+        \node[step, below=of reg] (browse) {Browse Startup Feed \\ \texttt{GET /startups/feed}};
+        \node[step, below=of browse] (match) {Check Match Score \\ \texttt{GET /investors/\{id\}/matches}};
+        \node[step, below=of match] (interest) {Express Interest \\ \texttt{POST /connect/interest}};
+        \node[step, below=of interest] (transfer) {Execute Fund Transfer \\ \texttt{POST /funds/transfer}};
+
+        \draw[arr] (reg) -- (browse);
+        \draw[arr] (browse) -- (match);
+        \draw[arr] (match) -- (interest);
+        \draw[arr] (interest) -- (transfer);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.42\textwidth}
       \begin{scard}{Financial Pipeline}
@@ -424,32 +485,42 @@
 \end{frame}
 
 % Slide 11: Analyst User Journey
-\begin{frame}[t,allowframebreaks]{Analyst User Journey}
+\begin{frame}{Analyst User Journey}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
-      \begin{scard}{Analyst Flow}
-        \begin{itemize}
-          \item Analyst logs in with role \texttt{ANALYST}.
-          \item Inspects network graphs with \texttt{GET /analytics/network}.
-          \item Verifies achievements via \texttt{PATCH /achievements/\{id\}/verify}.
-          \item Tops up investor wallets with \texttt{POST /wallet/topup}.
-          \item Audits trends through \texttt{GET /analytics/sector-trends}.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.4cm and 0.8cm,
+        step/.style={rectangle, draw=WarningColor, fill=WarningColor!5, rounded corners=2pt, minimum width=3.0cm, minimum height=0.6cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        \node[step] (login) {Log In \\ \texttt{role: ANALYST}};
+        \node[step, below=of login] (net) {Inspect Network Graph \\ \texttt{GET /analytics/network}};
+        \node[step, below=of net] (ver) {Verify Achievements \\ \texttt{PATCH /achievements/\{id\}/verify}};
+        \node[step, below=of ver] (top) {Top-Up Investor Wallet \\ \texttt{POST /wallet/topup}};
+        \node[step, below=of top] (trend) {Audit Sector Trends \\ \texttt{GET /analytics/sector-trends}};
+
+        \draw[arr] (login) -- (net);
+        \draw[arr] (net) -- (ver);
+        \draw[arr] (ver) -- (top);
+        \draw[arr] (top) -- (trend);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.42\textwidth}
       \begin{scard}{Analytics Tools}
         \begin{itemize}
           \item \textbf{Global view:} Displays co-investments and connections across the entire system.
           \item \textbf{Authority Actions:} Verifies startup achievements to update matches.
-        \end{itemize}
+        \end{itemize>
       \end{scard}
     \end{column}
   \end{columns}
 \end{frame}
 
 % Slide 12: DevOps Toolstack
-\begin{frame}[t,allowframebreaks]{DevOps \& Infrastructure Stack}
+\begin{frame}{DevOps \& Infrastructure Stack}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Code \& Build Automation}
@@ -480,24 +551,34 @@
 \end{frame}
 
 % Slide 13: Docker & Containerization
-\begin{frame}[t,allowframebreaks]{Containerization Strategy}
+\begin{frame}{Containerization Strategy}
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
-      \begin{scard}{Containerization Overview}
-        \begin{itemize}
-          \item Nginx serves the frontend on host port 80.
-          \item Backend runs in a private FastAPI container on port 8000.
-          \item Redis and Neo4j remain internal to the Docker network for security.
-          \item Docker Compose binds only the frontend public port by default.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.4cm and 0.8cm,
+        cont/.style={rectangle, draw=PrimaryColor, fill=PrimaryColor!5, rounded corners=4pt, minimum width=2.4cm, minimum height=1.0cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        pub/.style={cont, draw=SuccessColor, fill=SuccessColor!5},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        \node[cont] (nginx) {Nginx Frontend \\ \texttt{frontend:dev} \\ Port 80 (Public)};
+        \node[cont, below=1.2cm of nginx] (backend) {FastAPI Backend \\ \texttt{backend:dev} \\ Port 8000 (Private)};
+        \node[pub, right=of backend] (redis) {Redis Container \\ \texttt{redis:7-alpine} \\ Port 6379 (Private)};
+        \node[pub, left=of backend] (neo4j) {Neo4j Container \\ \texttt{neo4j:5.13} \\ Ports 7474, 7687 (Private)};
+
+        \draw[arr] (nginx) -- node[right, font=\tiny\sffamily] {Proxy Pass} (backend);
+        \draw[arr] (backend) -- node[above, font=\tiny\sffamily] {Lock/Cache} (redis);
+        \draw[arr] (backend) -- node[above, font=\tiny\sffamily] {Cypher/Bolt} (neo4j);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{scard}{Isolation Model}
         \begin{itemize}
           \item Backend runs on a lightweight Debian-slim base image.
           \item Only Nginx binds to host Port 80, shielding API servers.
-          \item Neo4j data folders are mapped to persistent Docker volumes.
+          \item Neo4j data folders mapped to persistent docker volumes.
         \end{itemize}
       \end{scard}
     \end{column}
@@ -505,18 +586,32 @@
 \end{frame}
 
 % Slide 14: Jenkins CI/CD Pipeline
-\begin{frame}[t,allowframebreaks]{Jenkins Pipeline Implementation}
+\begin{frame}{Jenkins Pipeline Implementation}
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
-      \begin{scard}{Jenkins Pipeline Stages}
-        \begin{itemize}
-          \item Checkout repository from GitHub.
-          \item Validate Python and Docker configuration.
-          \item Build backend and frontend containers.
-          \item Deploy stack via Docker Compose.
-          \item Run health checks and publish deployment results.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.2cm and 0.8cm,
+        stage/.style={rectangle, draw=PrimaryColor, fill=CardBg, rounded corners=3pt, minimum width=3.4cm, minimum height=0.55cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        % Pipeline Nodes
+        \node[stage] (checkout) {\faGit*~Checkout \\ Clones main branch};
+        \node[stage, below=of checkout] (validate) {\faPython~Workspace \& Backend Audit \\ Lint \& Syntax Compiles};
+        \node[stage, below=of validate] (build) {\faDocker~Docker Build \\ Builds frontend \& backend images};
+        \node[stage, below=of build] (deploy) {\faServer~Docker Compose Stack \\ Up --force-recreate};
+        \node[stage, below=of deploy] (health) {\faHeartbeat~Health Checks \\ Active Neo4j/Redis REST Probes};
+        \node[stage, below=of health] (summary) {\faFile~Publish Results \\ Success/Failure Summary};
+
+        % Transitions
+        \draw[arr] (checkout) -- (validate);
+        \draw[arr] (validate) -- (build);
+        \draw[arr] (build) -- (deploy);
+        \draw[arr] (deploy) -- (health);
+        \draw[arr] (health) -- (summary);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{scard}{Safety Gates}
@@ -531,7 +626,7 @@
 \end{frame}
 
 % Slide 15: Other DevOps Tooling
-\begin{frame}[t,allowframebreaks]{Supporting Services \& Automation}
+\begin{frame}{Supporting Services \& Automation}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Nginx Traffic Controller}
@@ -540,7 +635,7 @@
           \item Proxies dynamic \texttt{/health} and auth endpoints directly to FastAPI.
           \item Inject reverse proxy headers including \texttt{X-Real-IP}.
         \end{itemize}
-      \end{scard}
+      \end{scard>
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{scard}{Environment Isolation}
@@ -555,7 +650,7 @@
 \end{frame}
 
 % Slide 16: API Architecture
-\begin{frame}[t,allowframebreaks]{API Architecture \& Route Schema}
+\begin{frame}{API Architecture \& Route Schema}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
       \begin{scard}{Core FastAPI Routers}
@@ -580,7 +675,7 @@
 \end{frame}
 
 % Slide 17: Security Architecture
-\begin{frame}[t,allowframebreaks]{Security Architecture \& Access Controls}
+\begin{frame}{Security Architecture \& Access Controls}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{HMAC Token Signing}
@@ -604,23 +699,46 @@
 \end{frame}
 
 % Slide 18: Transaction Lock Lifecycle
-\begin{frame}[t,allowframebreaks]{Transaction Lock Lifecycle}
+\begin{frame}{Transaction Lock Lifecycle}
   \begin{columns}[T]
     \begin{column}{0.65\textwidth}
-      \begin{scard}{Lock Lifecycle}
-        \begin{itemize}
-          \item HTTP funds transfer request acquires a Redis mutex lock.
-          \item Neo4j transaction starts and validates balances.
-          \item Mutations commit only after lock release and cache invalidation.
-        \end{itemize}
-      \end{scard}
+      \centering
+      \resizebox{\textwidth}{!}{
+      \begin{tikzpicture}[
+        node distance=0.25cm and 0.8cm,
+        box/.style={rectangle, draw=CardBorder, fill=CardBg, rounded corners=2pt, minimum width=2.8cm, minimum height=0.45cm, align=center, font=\sffamily\tiny\bfseries, text=TextDark},
+        lock/.style={box, draw=WarningColor, fill=WarningColor!5},
+        db/.style={box, draw=PrimaryColor, fill=PrimaryColor!5},
+        success/.style={box, draw=SuccessColor, fill=SuccessColor!5},
+        arr/.style={-{Stealth[scale=0.8]}, thick, SecondaryColor}
+      ]
+        % Nodes
+        \node[box] (start) {HTTP Funds Transfer Request};
+        \node[lock, below=of start] (acquire) {Acquire Redis Mutex Lock};
+        \node[db, below=of acquire] (txstart) {Start Neo4j ACID TX};
+        \node[db, below=of txstart] (check) {Check Target Cap / Balances};
+        \node[db, below=of check] (write) {Mutate Balances \& Edges};
+        \node[db, below=of write] (commit) {Commit TX};
+        \node[lock, below=of commit] (release) {Release Redis Mutex Lock};
+        \node[success, below=of release] (done) {Invalidate Profile Caches};
+
+        % Connections
+        \draw[arr] (start) -- (acquire);
+        \draw[arr] (acquire) -- (txstart);
+        \draw[arr] (txstart) -- (check);
+        \draw[arr] (check) -- (write);
+        \draw[arr] (write) -- (commit);
+        \draw[arr] (commit) -- (release);
+        \draw[arr] (release) -- (done);
+      \end{tikzpicture}
+      }
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{scard}{Protection Mechanics}
         \begin{itemize}
           \item Mutex lock uses a 10s auto-expiry.
-          \item Rejects transactions if funding limits are exceeded.
-          \item Invalidates cache only after successful commit.
+          \item Rejects transactions if startup funding limit is exceeded.
+          \item ZSET and cache invalidation run on success.
         \end{itemize}
       \end{scard}
     \end{column}
@@ -628,7 +746,7 @@
 \end{frame}
 
 % Slide 19: Pytest Testing Infrastructure
-\begin{frame}[t,allowframebreaks]{Pytest Testing \& Verification}
+\begin{frame}{Pytest Testing \& Verification}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Unit \& Mock Framework}
@@ -652,7 +770,7 @@
 \end{frame}
 
 % Slide 20: Performance Optimization & Scalability
-\begin{frame}[t,allowframebreaks]{Performance Optimization \& Scalability}
+\begin{frame}{Performance Optimization \& Scalability}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Caching Layer Strategies}
@@ -676,7 +794,7 @@
 \end{frame}
 
 % Slide 21: Future Roadmap & Architecture Conclusion
-\begin{frame}[t,allowframebreaks]{Future Roadmap \& Architecture Conclusion}
+\begin{frame}{Future Roadmap \& Architecture Conclusion}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{scard}{Technical Growth Path}
@@ -700,3 +818,20 @@
 \end{frame}
 
 \end{document}
+"""
+
+with open("main.tex", "w", encoding="utf-8") as f:
+    f.write(latex_content)
+
+print("Written main.tex successfully. Compiling...")
+result = subprocess.run(["pdflatex", "-interaction=nonstopmode", "main.tex"], capture_output=True, text=True)
+print("STDOUT:")
+print(result.stdout[-1000:])
+print("STDERR:")
+print(result.stderr)
+print("Exit Code:", result.returncode)
+if result.returncode != 0:
+    print("Failed compile. Let's see some errors from main.log")
+    if os.path.exists("main.log"):
+        with open("main.log", "r") as log_f:
+            print("\n".join(log_f.readlines()[-100:]))
